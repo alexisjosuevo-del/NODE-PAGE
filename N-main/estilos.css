@@ -1,0 +1,245 @@
+@keyframes node-spin {
+  from { transform: rotate(0deg) }
+  to   { transform: rotate(360deg) }
+}
+
+.logo-spin {
+  animation: node-spin 9s linear infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* Pausa al hacer hover sobre el logo completo — UX intencional */
+.nav-logo:hover .logo-spin {
+  animation-play-state: paused;
+}
+
+/* Respeto a preferencias de movimiento reducido — WCAG 2.1 */
+@media (prefers-reduced-motion: reduce) {
+  .logo-spin {
+    animation: none;
+  }
+}
+/* ══════════════════════════════════════════════════════
+   bundle-fix.css — Corrección de bugs en sección Bundles
+   NODE Soluciones Tecnológicas 
+   
+   BUGS CORREGIDOS:
+   1. SVG .bico desbordaban el contenedor en móvil
+   2. Las cards de bundles se rompían en pantallas < 640px
+   3. Animaciones GSAP generaban scroll horizontal en móvil
+   4. contain:layout insuficiente para clips de transform
+   ══════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────
+   FIX 1 — Contener SVG animados en desktop y móvil
+   Evita que los transforms de GSAP (scaleX/Y, rotation,
+   translateY) salgan del área de la card y rompan el layout
+────────────────────────────────────────────────────── */
+.price-card.bundle-card {
+  overflow: visible;          /* permite que .price-badge (-13px) sea visible */
+  isolation: isolate;         /* crea stacking context propio                */
+}
+
+/* Clip interno para animaciones GSAP — evita scroll horizontal sin cortar el badge */
+.price-card.bundle-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* El contenido animado se recorta con un wrapper interno, no con la card entera */
+.price-card.bundle-card > *:not(.price-badge) 
+  /* Los hijos directos con overflow visible no requieren clip aquí;
+     los SVG .bico ya tienen contain:layout paint style desde FIX 2 */
+
+
+/* ──────────────────────────────────────────────────────
+   FIX 2 — Ajuste del ícono SVG (.bico)
+   overflow:visible era el culpable del scroll horizontal
+   en móvil; contain:strict reemplaza contain:layout
+────────────────────────────────────────────────────── */
+.bico {
+  overflow: hidden !important;  /* reemplaza overflow:visible original */
+  contain: layout paint style;  /* contiene layout + pintura + estilos  */
+  transform: translateZ(0);     /* promueve a layer GPU                 */
+  will-change: transform;       /* hint al browser para animaciones     */
+  flex-shrink: 0;
+}
+
+/* ──────────────────────────────────────────────────────
+   FIX 3 — Móvil (<640px): desactivar hints GPU y
+   reducir tamaño de íconos para no desbordar la card
+────────────────────────────────────────────────────── */
+@media (max-width: 639px) {
+
+  /* Ícono más pequeño en móvil */
+  .bico {
+    width: 32px !important;
+    height: 32px !important;
+    will-change: auto;          /* libera memoria GPU en móvil */
+    transform: none;
+  }
+
+  /* Nombre del bundle: limitar tamaño y evitar overflow */
+  .bundle-name {
+    font-size: 0.875rem !important;
+    gap: 0.4rem !important;
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* El texto dentro del nombre puede truncar si es necesario */
+  .bundle-name > span,
+  .bundle-name > text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Evitar scroll horizontal global en el tab de bundles
+     IMPORTANTE: overflow-x:clip (no hidden) para no crear un BFC que corte
+     los .price-badge en top:-13px de las cards de la primera fila */
+  #tab-bun {
+    overflow-x: clip;  /* bloquea scroll H sin crear stacking context de contención Y */
+    width: 100%;
+  }
+
+  /* Cards de precio: asegurar que no excedan el viewport */
+  .price-card {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  /* Grilla 2col forzada a 1 columna en móvil pequeño */
+  .pricing-grid-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Bundle hero banner: stack vertical en móvil */
+  .bundle-hero-banner {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Botones info de bundle: tamaño mínimo usable */
+  .btn-bundle-info {
+    font-size: 0.7rem !important;
+    padding: 0.5rem 0.5rem !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   FIX 4 — Tablet (640px–767px): ajuste intermedio
+────────────────────────────────────────────────────── */
+
+
+  .bundle-name {
+    font-size: 1rem !important;
+  }
+
+
+/* ──────────────────────────────────────────────────────
+   FIX 5 — iOS scroll lock para modales BIM
+   document.body.style.overflow='hidden' no funciona en
+   iOS Safari; se necesita position:fixed + scroll restore
+   (Manejado en bundle-fix.js; esta regla es el CSS de apoyo)
+────────────────────────────────────────────────────── */
+body.bim-lock {
+  position: fixed;
+  width: 100%;
+  overflow-y: scroll; /* mantiene el ancho para evitar layout shift */
+}
+
+/* ──────────────────────────────────────────────────────
+   FIX 6 — Panel BIM modal: scroll interno en móvil
+────────────────────────────────────────────────────── */
+@media (max-width: 639px) {
+  .bim-panel {
+    max-height: 92svh; /* usar svh para móvil (excluye UI del browser) */
+    border-radius: var(--radius-md);
+  }
+
+  .bim-overlay {
+    padding: 0.5rem;
+    align-items: flex-end; /* slide up desde abajo en móvil */
+  }
+
+  .bim-overlay.open .bim-panel {
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   FIX 7 — prefers-reduced-motion: ocultar íconos SVG
+   animados y mostrar solo el texto (accesibilidad)
+────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .bico {
+    /* Sin animaciones: detener todos los transforms */
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .emoji-rocket, .emoji-swing, .emoji-bag,
+  .emoji-chart, .emoji-robot, .emoji-trend,
+  .emoji-crystal, .emoji-gear {
+    animation: none !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   FIX 8 — Evitar que los modales BIM (position:fixed)
+   creen ítems fantasma en el CSS Grid de .pricing-grid
+   Esto ocurre en algunos browsers cuando un hijo del grid
+   tiene position:fixed pero está declarado dentro del grid
+────────────────────────────────────────────────────── */
+.bim-overlay {
+  /* position:fixed ya los saca del flujo, pero forzamos
+     grid-column:1/-1 para que no ocupen tracks extraños
+     si algún browser los considera grid-items */
+  grid-column: 1 / -1;
+  grid-row: auto;
+  /* Cuando está cerrado: ocupa 0 espacio */
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bim-overlay.open {
+  height: auto;       /* restaurar al abrirse */
+  overflow: visible;
+  pointer-events: auto;
+}
+/* ──────────────────────────────────────────────────────
+   FIX 9 — Badges de bundles visibles en todos los browsers
+   Los .price-badge usan position:absolute;top:-13px y
+   necesitan que sus ancestros tengan overflow:visible.
+   Aquí forzamos esto en las grillas de bundles y en
+   las cards con badge.
+────────────────────────────────────────────────────── */
+#tab-bun .pricing-grid,
+#tab-bun .pricing-grid-2col {
+  overflow: visible !important;
+}
+
+/* Card con badge: padding-top para que el badge no tape el contenido
+   Selector :has() con fallback para browsers sin soporte */
+#tab-bun .price-card.bundle-card {
+  padding-top: 2.5rem;   /* espacio para el badge en top:-13px */
+}
+
+/* Cards sin badge: restaurar padding normal */
+#tab-bun .price-card.bundle-card:not(:has(.price-badge)) {
+  padding-top: 1.75rem;
+}
+
+/* Fallback: browsers sin :has() — JS agrega clase .has-badge */
+#tab-bun .price-card.bundle-card.has-badge {
+  padding-top: 2.5rem;
+}

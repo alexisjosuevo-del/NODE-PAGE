@@ -792,20 +792,29 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 #showcase-video{padding:5rem 0;background:var(--surface-page)}
 .showcase-shell{margin-top:2.5rem}
 .showcase-video{
-  position:relative;overflow:hidden;border-radius:24px;min-height:420px;
-  border:1px solid var(--border-default);box-shadow:var(--shadow-lg);background:#0f172a;
+  position:relative;overflow:hidden;border-radius:24px;
+  /* altura dinámica: crece con el contenido interno (el dashboard) */
+  min-height:480px;
+  border:1px solid var(--border-default);box-shadow:var(--shadow-lg);background:#050508;
+  /* Asegura que el #interactive-dashboard hijo pueda usar height:100% */
+  display:flex;flex-direction:column;
+}
+/* El dashboard interactivo ocupa todo el espacio del recuadro */
+.showcase-video > #interactive-dashboard,
+.showcase-video > .interactive-dash-section {
+  flex:1;min-height:480px;
 }
 .showcase-video__media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .showcase-video__overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(15,23,42,.38))}
 .showcase-video__badge{
-  position:absolute;top:18px;left:18px;z-index:2;
+  position:absolute;top:18px;left:18px;z-index:10;
   display:inline-flex;align-items:center;gap:.5rem;
   background:rgba(255,255,255,.88);backdrop-filter:blur(8px);
   border:1px solid rgba(255,255,255,.72);color:var(--text-primary);
   padding:.55rem .95rem;border-radius:999px;font-size:.82rem;font-weight:700;
   box-shadow:var(--shadow-sm)
 }
-.showcase-video__content{position:relative;z-index:2;display:flex;align-items:flex-end;min-height:420px;padding:2rem}
+.showcase-video__content{position:relative;z-index:2;display:flex;align-items:flex-end;padding:2rem;pointer-events:none}
 .showcase-video__card{
   max-width:540px;background:rgba(255,255,255,.90);backdrop-filter:blur(12px);
   border:1px solid rgba(255,255,255,.8);border-radius:20px;padding:1.2rem 1.25rem;box-shadow:var(--shadow-md)
@@ -813,7 +822,9 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .showcase-video__card h3{margin:0 0 .5rem;font-size:1.3rem;line-height:1.15;color:var(--text-primary)}
 .showcase-video__card p{margin:0;color:var(--text-secondary);line-height:1.65;font-size:.96rem}
 @media(max-width:768px){
-  .showcase-video,.showcase-video__content{min-height:340px}
+  .showcase-video,
+  .showcase-video > #interactive-dashboard,
+  .showcase-video > .interactive-dash-section{min-height:340px}
   .showcase-video__card{max-width:none}
 }
 
@@ -1008,24 +1019,24 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 }
 
 /* ── Modal overlay ── */
+/* El overlay arranca DEBAJO del navbar — el encabezado siempre queda visible */
 #node-privacy-overlay{
-  position:fixed;inset:0;z-index:9100;
+  position:fixed;top:64px;left:0;right:0;bottom:0;z-index:190;
   background:rgba(30,45,64,.50);
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  display:flex;align-items:flex-end;justify-content:center;
-  padding:12px;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
   opacity:0;pointer-events:none;
   transition:opacity var(--dur-slow) var(--ease-base)
 }
 #node-privacy-overlay.pm-visible{opacity:1;pointer-events:auto}
-@media(min-width:640px){#node-privacy-overlay{align-items:center}}
 
 #node-privacy-modal{
   background:var(--surface-elevated);
   border:1px solid var(--border-default);
   border-radius:var(--radius-lg);
   box-shadow:var(--shadow-xl);
-  width:100%;max-width:720px;max-height:92vh;
+  width:100%;max-width:720px;max-height:calc(100vh - 80px);
   overflow:hidden;display:flex;flex-direction:column;
   transform:translateY(24px) scale(0.97);
   transition:transform var(--dur-enter) var(--ease-spring)
@@ -1248,16 +1259,15 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
     text-align:center
   }
 
-  /* Modal: ocupa la pantalla completa verticalmente */
+  /* Modal mobile: el encabezado sigue visible (overlay top:64px) */
   #node-privacy-overlay{
-    padding:0;
+    padding:8px;
     align-items:flex-end
   }
   #node-privacy-modal{
     border-radius:var(--radius-lg) var(--radius-lg) 0 0;
-    max-height:94vh;
-    /* Asegurar que el teclado virtual no lo rompa */
-    max-height:94dvh
+    max-height:calc(100vh - 76px);
+    max-height:calc(100dvh - 76px)
   }
 
   /* Header del modal más compacto */
@@ -1371,7 +1381,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   #node-privacy-overlay{align-items:center;padding:16px}
   #node-privacy-modal{
     border-radius:var(--radius-lg);
-    max-height:90vh;max-height:90dvh
+    max-height:calc(90vh - 64px);max-height:calc(90dvh - 64px)
   }
   .pm-footer{flex-direction:row}
   .btn-pm-accept,.btn-pm-dismiss{width:auto}
@@ -1684,76 +1694,111 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
     <div class="hero-spot hero-spot-3"></div>
     <div class="hero-grid-lines"></div>
   </div>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
+   <script>
+     document.addEventListener("DOMContentLoaded", function() {
         const canvas = document.getElementById('hero-node-canvas');
-        if(!canvas) return;
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        let width, height;
+        /* ── Dimensiones lógicas (CSS px) del área visible ── */
+        let W = 0, H = 0;
         let nodes = [];
+        let animId;
+
+        /* ── Referencia al section #hero, no al padre inmediato ──
+           Así capturamos el tamaño real del recuadro completo,
+           independientemente de si hero-deco todavía no tiene altura. */
+        const heroSection = document.getElementById('hero') || canvas.closest('section') || canvas.parentElement;
+
+        /* ── DPR: resuelve el blur en pantallas Retina/HiDPI ── */
+        function getDpr() {
+            return Math.min(window.devicePixelRatio || 1, 2); // cap en 2x para rendimiento
+        }
 
         function resize() {
-            width = canvas.width = canvas.parentElement.offsetWidth;
-            height = canvas.height = canvas.parentElement.offsetHeight;
+            const dpr  = getDpr();
+            /* offsetWidth/Height sobre el section es siempre correcto
+               porque el section tiene min-height:100svh y display:flex */
+            W = heroSection.offsetWidth;
+            H = heroSection.offsetHeight;
+
+            /* Tamaño interno del buffer (físico) */
+            canvas.width  = Math.round(W * dpr);
+            canvas.height = Math.round(H * dpr);
+
+            /* El CSS ya pone width:100%; height:100% en el canvas,
+               pero lo forzamos también inline por si acaso */
+            canvas.style.width  = W + 'px';
+            canvas.style.height = H + 'px';
+
+            /* Escalar el contexto para que 1 unidad = 1 CSS px */
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            /* Reclamp nodos existentes para que no queden fuera del recuadro */
+            nodes.forEach(function(n) {
+                n.x = Math.min(Math.max(n.x, 0), W);
+                n.y = Math.min(Math.max(n.y, 0), H);
+            });
         }
-        window.addEventListener('resize', resize);
+
+        /* ── Clase Node (coordenadas siempre en CSS px) ── */
+        function Node() {
+            this.x      = Math.random() * W;
+            this.y      = Math.random() * H;
+            this.vx     = (Math.random() - 0.5) * 0.8;
+            this.vy     = (Math.random() - 0.5) * 0.8;
+            this.radius = Math.random() * 2 + 1.5;
+        }
+        Node.prototype.update = function() {
+            this.x += this.vx;
+            this.y += this.vy;
+            if (this.x < 0 || this.x > W) this.vx *= -1;
+            if (this.y < 0 || this.y > H) this.vy *= -1;
+        };
+        Node.prototype.draw = function() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#00ffcc';
+            ctx.fill();
+        };
+
+        /* ── Init resize + crear nodos ── */
         resize();
+        var numNodes = W > 768 ? 65 : 30;
+        for (var i = 0; i < numNodes; i++) { nodes.push(new Node()); }
 
-        class Node {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.vx = (Math.random() - 0.5) * 0.8;
-                this.vy = (Math.random() - 0.5) * 0.8;
-                this.radius = Math.random() * 2 + 1.5;
-            }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                if(this.x < 0 || this.x > width) this.vx *= -1;
-                if(this.y < 0 || this.y > height) this.vy *= -1;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = '#00ffcc';
-                ctx.fill();
-            }
-        }
-
-        // Determinar cantidad de nodos (menos en móviles para buen rendimiento)
-        const numNodes = window.innerWidth > 768 ? 65 : 30;
-        for(let i = 0; i < numNodes; i++) {
-            nodes.push(new Node());
-        }
-
+        /* ── Loop de animación ── */
         function animate() {
-            ctx.clearRect(0, 0, width, height);
-            
-            for(let i = 0; i < nodes.length; i++) {
+            animId = requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, W, H);
+            for (var i = 0; i < nodes.length; i++) {
                 nodes[i].update();
                 nodes[i].draw();
-                
-                for(let j = i + 1; j < nodes.length; j++) {
-                    let dx = nodes[i].x - nodes[j].x;
-                    let dy = nodes[i].y - nodes[j].y;
-                    let dist = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if(dist < 150) {
+                for (var j = i + 1; j < nodes.length; j++) {
+                    var dx   = nodes[i].x - nodes[j].x;
+                    var dy   = nodes[i].y - nodes[j].y;
+                    var dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 150) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(0, 255, 204, ${1 - dist/150})`;
-                        ctx.lineWidth = 0.6;
+                        ctx.strokeStyle = 'rgba(0,255,204,' + (1 - dist / 150) + ')';
+                        ctx.lineWidth   = 0.6;
                         ctx.moveTo(nodes[i].x, nodes[i].y);
                         ctx.lineTo(nodes[j].x, nodes[j].y);
                         ctx.stroke();
                     }
                 }
             }
-            requestAnimationFrame(animate);
         }
         animate();
+
+        /* ── ResizeObserver: captura cambios de tamaño del section
+           incluyendo rotación de pantalla, zoom del browser, etc. ── */
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(function() { resize(); }).observe(heroSection);
+        } else {
+            window.addEventListener('resize', resize);
+        }
     });
-  </script>
+   </script>
   <div class="container" style="position:relative;z-index:1">
     <div class="hero-content">
       <div class="hero-overline reveal">
@@ -1804,7 +1849,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 
 <!-- ─── STATS BAR ─── -->
 <section id="stats" style="position: relative; overflow: hidden;">
-<!-- ANIMATION: Radar Sweep -->
+  <!-- ANIMATION: Radar Sweep -->
 <div class="anim-radar"></div>
 <style>
 .anim-radar {
@@ -1820,7 +1865,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 #stats > .container { position: relative; z-index: 1; }
 </style>
 
-<div class="container">
+  <div class="container">
     <div class="stats-grid">
       <div class="stat-item reveal">
         <div class="stat-num">5–18</div>
@@ -1848,7 +1893,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 
 <!-- ─── PROBLEMA → SOLUCIÓN ─── -->
 <section id="problema" style="position: relative; overflow: hidden;">
-<!-- ANIMATION: Warning Pulse -->
+  <!-- ANIMATION: Warning Pulse -->
 <div class="anim-warning-pulse"></div>
 <style>
 .anim-warning-pulse {
@@ -1867,7 +1912,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 #problema > .container { position: relative; z-index: 1; }
 </style>
 
-<div class="container">
+  <div class="container">
     <div class="section-header reveal">
       <div class="section-label">El problema que resolvemos</div>
       <h2 class="h2">Tu negocio merece una presencia profesional<br>desde el primer día — y herramientas que escalen contigo</h2>
@@ -1877,7 +1922,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 
 <!-- ─── PROCESO — indigo-50 gradient ─── -->
 <section id="proceso" style="position: relative; overflow: hidden;">
-<!-- CYBERPUNK DATA STREAMS -->
+  <!-- CYBERPUNK DATA STREAMS -->
 <div class="data-streams">
     <div class="stream" style="left: 15%; animation-duration: 4s; animation-delay: 0s;"></div>
     <div class="stream" style="left: 45%; animation-duration: 5s; animation-delay: 1.5s;"></div>
@@ -1938,11 +1983,9 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
     </div>
   </div>
 </section>
-
-<!-- ─── FEATURES — white ─── -->
 <!-- ─── NOSOTROS ─── -->
 <section id="nosotros" style="position: relative; overflow: hidden;">
-<!-- ANIMATION: Orbiting Rings -->
+  <!-- ANIMATION: Orbiting Rings -->
 <div class="anim-orbits">
     <div class="orbit orbit-1"><div class="orbit-dot"></div></div>
     <div class="orbit orbit-2"><div class="orbit-dot"></div></div>
@@ -1974,7 +2017,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 #nosotros > .container { position: relative; z-index: 1; }
 </style>
 
-<div class="container">
+  <div class="container">
 
     <!-- ── ¿POR QUÉ NODE? — el origen del nombre ── -->
     <div class="section-header reveal">
@@ -2062,30 +2105,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
         </div>
       </div>
     </div>
-
-    <!-- ── MISIÓN + VISIÓN ── -->
-    <hr class="ns-divider">
-    <div class="ns-sub-header reveal">
-      <span class="overline" style="color:var(--indigo)">Quiénes somos</span>
-      <h3 class="h3" style="margin-top:.5rem">Nuestra misión y visión</h3>
-    </div>
-    <div class="ns-mv-grid">
-      <div class="ns-mv-card mision reveal">
-        <div class="ns-mv-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        </div>
-        <div class="ns-mv-label">Misión</div>
-        <p class="ns-mv-text">Construir el software que tu negocio necesita para ejecutar su estrategia de crecimiento — con velocidad, precio transparente y proceso documentado desde el primer día.</p>
-      </div>
-      <div class="ns-mv-card vision reveal reveal-d1">
-        <div class="ns-mv-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </div>
-        <div class="ns-mv-label">Visión</div>
-        <p class="ns-mv-text">Ser referentes como empresa de servicios de software para impulsar el desarrollo tecnológico a nivel global — a través de la innovación y el impacto real en cada cliente.</p>
-      </div>
-    </div>
-
+    
     <!-- ── VALORES ── -->
     <hr class="ns-divider">
     <div class="ns-sub-header reveal">
@@ -2187,8 +2207,8 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
     </div>
 
   <!-- ─── FEATURES — white ─── -->
-  <section id="features" style="position: relative; overflow: hidden;">
-<!-- ANIMATION: Floating Tech Crosses -->
+   <section id="features" style="position: relative; overflow: hidden;">
+    <!-- ANIMATION: Floating Tech Crosses -->
 <div class="anim-crosses">
     <div class="cross" style="top: 20%; left: 10%; animation-delay: 0s;">+</div>
     <div class="cross" style="top: 70%; left: 80%; animation-delay: 2s;">+</div>
@@ -2214,7 +2234,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 #features > .container { position: relative; z-index: 1; }
 </style>
 
-<div class="container">
+  <div class="container">
     <div class="section-header reveal">
       <div class="section-label">Por qué NODE</div>
       <h2 class="h2">Lo que nos hace diferentes</h2>
@@ -2324,7 +2344,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 </style>
 
 <section id="productos" style="position: relative; overflow: hidden;">
-<!-- PREMIUM BACKGROUND BLOBS -->
+  <!-- PREMIUM BACKGROUND BLOBS -->
 <div class="premium-blobs-container">
     <div class="premium-blob blob-1"></div>
     <div class="premium-blob blob-2"></div>
@@ -2356,7 +2376,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 
   <div class="container">
     <div class="section-header reveal">
-      <h2 class="h2">15 productos. 8 bundles. Una sola decisión.</h2>
+      <h2 class="h2">15 productos. 8 soluciones. Una sola decisión.</h2>
       <p>Desde una landing page hasta dashboards ejecutivos en tiempo real. Todos con precio transparente, proceso documentado y entrega garantizada.</p>
     </div>
 
@@ -2889,7 +2909,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
               <div class="bim-outcome-item"><div class="bim-outcome-check">✓</div><div class="bim-outcome-text"><strong>CFDI 4.0</strong> desde tu celular — 100 timbres incluidos, sin pagar contador</div></div>
               <div class="bim-outcome-item"><div class="bim-outcome-check">✓</div><div class="bim-outcome-text"><strong>Sin suscripciones mensuales</strong> eternas a plataformas de terceros</div></div>
               <div class="bim-outcome-item"><div class="bim-outcome-check">✓</div><div class="bim-outcome-text">Entrega en <strong>12–15 días hábiles</strong> — sin competidor directo en México a este precio</div></div>
-              <div class="bim-cta"><a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20NODE%20PROFESIONAL." target="_blank" rel="noopener">Lo quiero →</a></div>
+              <div class="bim-cta"><a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20la%20solucion%20PROFESIONAL." target="_blank" rel="noopener">Lo quiero →</a></div>
             </div>
           </div>
         </div>
@@ -3014,7 +3034,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
             </button>
           </div>
           <!-- FIN LÍNEAS NUEVAS botones B4 -->
-          <a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20a%20Solucion%20PROFESIONAL.%20Tenemos%20equipo%20de%20ventas%20y%20queremos%20CRM%2C%20cotizador%20y%20facturador." class="btn-card-main btn-cm-outline bundle-cta" target="_blank" rel="noopener">Lo quiero →</a>
+          <a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20NODE%20PROFESIONAL.%20Tenemos%20equipo%20de%20ventas%20y%20quiero%20CRM%2C%20cotizador%20y%20facturador." class="btn-card-main btn-cm-outline bundle-cta" target="_blank" rel="noopener">Lo quiero →</a>
         </div>
 
         <!-- LÍNEAS NUEVAS: Modales B4 -->
@@ -3231,7 +3251,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
               <div class="bim-item"><div class="bim-item-icon">📊</div><div><div class="bim-item-name">NODE Analytics</div><div class="bim-item-desc">10 KPIs · 3 fuentes · 8 gráficas · reportes PDF/Excel · top productos y hora pico</div></div>></div>
               <div class="bim-saving">
                 </div>
-              <div class="bim-cta"><a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20NODE%20DIGITAL%20360." target="_blank" rel="noopener">Quiero →</a></div>
+              <div class="bim-cta"><a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20NODE%20DIGITAL%20360." target="_blank" rel="noopener">Lo quiero →</a></div>
             </div>
           </div>
         </div>
@@ -3244,7 +3264,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
               <div class="bim-outcome-item"><div class="bim-outcome-check">✓</div><div class="bim-outcome-text"><strong>Automatizaciones en background</strong> — tareas repetitivas que se procesan solas</div></div>
               <div class="bim-outcome-item"><div class="bim-outcome-check">✓</div><div class="bim-outcome-text"><strong>Dashboard ejecutivo</strong> con tus KPIs más importantes en una sola pantalla</div></div>
               <div class="bim-outcome-item"><div class="bim-outcome-check">✓</div><div class="bim-outcome-text">Entrega en <strong>16–20 días hábiles garantizados</strong></div></div>
-              <div class="bim-cta"><a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20NODE%20DIGITAL%20360." target="_blank" rel="noopener">Quiero →</a></div>
+              <div class="bim-cta"><a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20NODE%20DIGITAL%20360." target="_blank" rel="noopener">Lo quiero →</a></div>
             </div>
           </div>
         </div>
@@ -3312,7 +3332,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
               <div class="bim-outcome-item"><div class="bim-outcome-check">✓</div><div class="bim-outcome-text"><strong>Precio transparente</strong> — lo que se cotiza es lo que se cobra, sin sorpresas</div></div>
               <div class="bim-outcome-item"><div class="bim-outcome-check">✓</div><div class="bim-outcome-text"><strong>Diagnóstico gratuito de 30 min</strong> antes de comprometerte a nada</div></div>
               <div class="bim-outcome-item"><div class="bim-outcome-check">✓</div><div class="bim-outcome-text"><strong>Soporte real</strong> por WhatsApp — respuesta el mismo día hábil post-entrega</div></div>
-              <div class="bim-cta"><a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20informaci%C3%%20sobre%20NODE%20ENTERPRISE." target="_blank" rel="noopener">Solicitar diagnóstico Enterprise →</a></div>
+              <div class="bim-cta"><a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20NODE%20ENTERPRISE." target="_blank" rel="noopener">Solicitar diagnóstico Enterprise →</a></div>
             </div>
           </div>
         </div>
@@ -3396,32 +3416,380 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
             <div class="pf-row"><span class="pf-check">✓</span>Prueba en sandbox + certificación antes de producción</div>
             <div class="pf-row"><span class="pf-check">✓</span>Documentación del cambio incluida</div>
           </div>
-          <a href="https://wa.me/527751023249?text=Hola%2C%20me%20interesa%20Actualización%20CFDI%20R4" class="btn-card-main btn-cm-outline" target="_blank" rel="noopener">Me interesa →</a>
+          <a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20Actualización%20CFDI%20" class="btn-card-main btn-cm-outline" target="_blank" rel="noopener">Me interesa →</a>
         </div>
       </div>
     </div><!-- /tab-rec -->
 
-<!-- ─── TESTIMONIOS ─── -->
-<!-- ─── FAQ — indigo-50 ─── -->
-<section id="faq" style="position: relative; overflow: hidden;">
-<!-- ANIMATION: FAQ Wave -->
-<div class="anim-wave"></div>
-<style>
-.anim-wave {
-    position: absolute; bottom: -50px; left: -50%;
-    width: 200%; height: 300px;
-    background: radial-gradient(ellipse at center, rgba(100, 50, 255, 0.25) 0%, transparent 60%);
-    animation: waveMove 6s infinite alternate ease-in-out;
-    pointer-events: none; z-index: 0;
+<!-- ─── VIDEO GRÁFICAS / EXPERIENCIA ─── -->
+ <!-- ─── FEATURES — white ─── -->
+ <section id="showcase-video">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label teal">Experiencia visual</div>
+      <h2 class="h2">Visualiza tus gráficas y módulos en movimiento</h2>
+      <p>Mantenemos tus metricas de manera eficiente y con buenos resultados.</p>
+    </div>
+    <div class="showcase-shell reveal reveal-d1">
+      <div class="showcase-video">
+        <video autoplay muted loop playsinline preload="metadata" class="showcase-video__media">
+        </video>
+
+        <style>
+/* ── DASHBOARD INTERACTIVO — contenido 100% dentro del recuadro showcase ── */
+
+/* Dimensiones base del "diseño de referencia" de la tableta (no cambian) */
+:root {
+  --tablet-w: 850px;
+  --tablet-h: 550px;
 }
-@keyframes waveMove {
-    0% { transform: translateX(0) scaleY(1); opacity: 0.5; }
-    100% { transform: translateX(10%) scaleY(2); opacity: 1; }
+
+.interactive-dash-section {
+    /* Ocupa exactamente el recuadro showcase, sin overflow */
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background-color: #050508;
+    background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0,255,204,0.13) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(100,50,255,0.09) 0%, transparent 50%);
+    box-sizing: border-box;
 }
-#faq > .container { position: relative; z-index: 1; }
+
+.interactive-dash-section * { box-sizing: border-box; }
+
+/* Vista principal: llena todo el espacio disponible */
+.idash-main-view {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    perspective: 1500px;
+    cursor: grab;
+    overflow: hidden;
+}
+.idash-main-view:active { cursor: grabbing; }
+
+/* ── Tableta: tamaño fijo en su "espacio de diseño".
+   El JS aplica un scale() calculado para que quede dentro del recuadro. ── */
+.idash-tablet-container {
+    /* posición: centrada via flex del padre, el JS NO necesita marginLeft/Top */
+    width: var(--tablet-w);
+    height: var(--tablet-h);
+    flex-shrink: 0;          /* evita que flex la comprima antes del scale */
+    border-radius: 35px;
+    background: #111;
+    box-shadow: 
+        0 0 0 10px #222,
+        0 0 0 12px #444,
+        0 0 0 14px #111,
+        30px 40px 60px rgba(0,0,0,.8),
+        -10px -10px 30px rgba(0,255,204,.1);
+    transform-style: preserve-3d;
+    user-select: none;
+    /* La transición es sólo para parallax/drag — el scale inicial es instantáneo */
+    transition: transform 0.1s ease-out;
+    transform-origin: center center;
+}
+
+.idash-tablet-container::before {
+    content: '';
+    position: absolute;
+    left: -15px; top: 50%;
+    transform: translateY(-50%);
+    width: 8px; height: 8px;
+    background: #050510;
+    border-radius: 50%;
+    box-shadow: inset 0 0 2px rgba(255,255,255,.4);
+    z-index: 100;
+}
+
+.idash-tablet-screen {
+    position: absolute;
+    inset: 0;
+    border-radius: 25px;
+    background-color: #000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #0a0a0a;
+}
+
+.idash-image-wrapper {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.idash-screen-image {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    animation: panDashboard 25s infinite alternate ease-in-out;
+    transform-origin: center center;
+}
+.idash-screen-image.loaded { opacity: 1; }
+
+@keyframes panDashboard {
+    0%   { transform: scale(1.1) translate(0%,0%); }
+    25%  { transform: scale(1.2) translate(-3%,-2%); }
+    50%  { transform: scale(1.15) translate(2%,3%); }
+    75%  { transform: scale(1.2) translate(3%,-3%); }
+    100% { transform: scale(1.1) translate(0%,0%); }
+}
+
+.idash-tech-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    z-index: 10;
+}
+
+.idash-scanner-line {
+    position: absolute;
+    width: 100%; height: 2px;
+    background: #00ffcc;
+    box-shadow: 0 0 20px 4px rgba(0,255,204,.5);
+    opacity: .5;
+    animation: scanTablet 4s linear infinite;
+}
+@keyframes scanTablet {
+    0%   { top: -10%; opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { top: 110%; opacity: 0; }
+}
+
+.idash-data-point {
+    position: absolute;
+    width: 10px; height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 15px 5px rgba(0,255,204,.5);
+    animation: pulseData 2s infinite alternate;
+}
+.idash-dp1 { top: 30%; left: 40%; animation-delay: 0s; }
+.idash-dp2 { top: 60%; left: 70%; animation-delay: .5s; }
+.idash-dp3 { top: 20%; left: 80%; animation-delay: 1s; }
+
+@keyframes pulseData {
+    0%   { transform: scale(.5);  opacity: .3; }
+    100% { transform: scale(1.5); opacity: .9; }
+}
+
+.idash-app-header {
+    position: absolute;
+    top: 0; left: 0; width: 100%;
+    padding: 15px 25px;
+    background: linear-gradient(to bottom, rgba(0,0,0,.9), transparent);
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+}
+.idash-app-title {
+    font-size: 16px; font-weight: 600;
+    letter-spacing: 1px; color: #00ffcc;
+    text-shadow: 0 2px 5px rgba(0,0,0,.8);
+}
+
+.idash-loader {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 50px; height: 50px;
+    border: 4px solid rgba(0,255,204,.1);
+    border-top-color: #00ffcc;
+    border-radius: 50%;
+    animation: spin 1s infinite linear;
+    display: none;
+    z-index: 50;
+}
+@keyframes spin { 100% { transform: translate(-50%,-50%) rotate(360deg); } }
 </style>
 
-<div class="container">
+<section id="interactive-dashboard" class="interactive-dash-section">
+    <main class="idash-main-view" id="idashMainView">
+        <div class="idash-tablet-container" id="idashTablet">
+            <div class="idash-tablet-screen">
+                <div class="idash-app-header">
+                    <span class="idash-app-title" id="idashAppTitle">Cargando...</span>
+                    <span style="font-size:13px;font-weight:bold;color:#fff;">100% 🔋</span>
+                </div>
+                <div class="idash-image-wrapper">
+                    <img src="../img1.png" class="idash-screen-image loaded" id="idashDisplayImage">
+                </div>
+                <div class="idash-tech-overlay">
+                    <div class="idash-scanner-line"></div>
+                    <div class="idash-data-point idash-dp1"></div>
+                    <div class="idash-data-point idash-dp2"></div>
+                    <div class="idash-data-point idash-dp3"></div>
+                </div>
+                <div class="idash-loader" id="idashLoader"></div>
+            </div>
+        </div>
+    </main>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    /* ── Constantes de diseño (no cambiar) ── */
+    var TABLET_W = 850;
+    var TABLET_H = 550;
+    /* Padding interno del recuadro para que la tableta no toque los bordes */
+    var PADDING  = 40;
+
+    var imagesList = [
+        { src: '../img1.png', title: 'Dashboard Principal' },
+        { src: '../img2.png', title: 'Módulo de CRM' },
+        { src: '../img3.png', title: 'Analítica Avanzada' },
+        { src: '../img4.png', title: 'Reporte de Operaciones' },
+        { src: '../img5.png', title: 'Flujo Financiero' },
+        { src: '../img6.png', title: 'Métricas de Marketing' },
+        { src: '../img7.png', title: 'Rendimiento Global' },
+        { src: '../img8.png', title: 'Configuración del Sistema' }
+    ];
+
+    var currentIndex = 0;
+    var imgElement   = document.getElementById('idashDisplayImage');
+    var loader       = document.getElementById('idashLoader');
+    var titleEl      = document.getElementById('idashAppTitle');
+    var mainView     = document.getElementById('idashMainView');
+    var tablet       = document.getElementById('idashTablet');
+    /* El recuadro contenedor real es .showcase-video */
+    var showcaseBox  = document.querySelector('.showcase-video') || mainView;
+
+    if (!tablet || !mainView) return;
+
+    titleEl.textContent = imagesList[0].title;
+
+    /* ── 1. ESCALA ADAPTATIVA ──────────────────────────────────────────
+       Calcula el scale para que la tableta (850×550) quepa dentro del
+       recuadro showcase-video con un margen de PADDING px a cada lado.
+       Se ejecuta al inicio y en cada cambio de tamaño del recuadro.    */
+    var baseScale   = 1;
+    var parallaxRX  = 0;
+    var parallaxRY  = 0;
+    var dragOffsetX = 0;
+    var dragOffsetY = 0;
+
+    function applyTransform() {
+        tablet.style.transform =
+            'scale(' + baseScale + ') ' +
+            'rotateX(' + parallaxRX + 'deg) ' +
+            'rotateY(' + parallaxRY + 'deg) ' +
+            'translate(' + (dragOffsetX / baseScale) + 'px, ' +
+                           (dragOffsetY / baseScale) + 'px)';
+    }
+
+    function fitTablet() {
+        var boxW = showcaseBox.offsetWidth  || mainView.offsetWidth  || 800;
+        var boxH = showcaseBox.offsetHeight || mainView.offsetHeight || 420;
+        var scaleX = (boxW - PADDING * 2) / TABLET_W;
+        var scaleY = (boxH - PADDING * 2) / TABLET_H;
+        baseScale   = Math.min(scaleX, scaleY, 1); /* cap a 1 — no ampliar más del 100% */
+        dragOffsetX = 0;
+        dragOffsetY = 0;
+        applyTransform();
+    }
+
+    fitTablet();
+
+    /* ResizeObserver sobre showcaseBox para reaccionar a cualquier cambio */
+    if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(fitTablet).observe(showcaseBox);
+    } else {
+        window.addEventListener('resize', fitTablet);
+    }
+
+    /* ── 2. ROTACIÓN DE IMÁGENES ───────────────────────────────────── */
+    function nextImage() {
+        currentIndex = (currentIndex + 1) % imagesList.length;
+        var item = imagesList[currentIndex];
+        imgElement.classList.remove('loaded');
+        loader.style.display = 'block';
+        setTimeout(function() {
+            imgElement.src = item.src;
+            titleEl.textContent = item.title;
+            document.querySelectorAll('.idash-data-point').forEach(function(dp) {
+                dp.style.top  = (20 + Math.random() * 60) + '%';
+                dp.style.left = (20 + Math.random() * 60) + '%';
+            });
+            imgElement.onload = function() {
+                loader.style.display = 'none';
+                imgElement.classList.add('loaded');
+            };
+        }, 400);
+    }
+    setInterval(nextImage, 4000);
+
+    /* ── 3. PARALLAX + DRAG ────────────────────────────────────────── */
+    var isDragging = false;
+    var startMouseX, startMouseY;
+
+    mainView.addEventListener('mousedown', function(e) {
+        isDragging  = true;
+        startMouseX = e.clientX - dragOffsetX;
+        startMouseY = e.clientY - dragOffsetY;
+        tablet.style.transition = 'none';
+    });
+
+    window.addEventListener('mouseup', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        tablet.style.transition = 'transform 0.1s ease-out';
+    });
+
+    mainView.addEventListener('mousemove', function(e) {
+        if (isDragging) {
+            dragOffsetX = e.clientX - startMouseX;
+            dragOffsetY = e.clientY - startMouseY;
+        }
+        /* Parallax relativo al centro de mainView */
+        var rect    = mainView.getBoundingClientRect();
+        var cx      = rect.left + rect.width  / 2;
+        var cy      = rect.top  + rect.height / 2;
+        parallaxRX  = +((cy - e.clientY) / 35).toFixed(2);
+        parallaxRY  = +((e.clientX - cx) / 35).toFixed(2);
+        applyTransform();
+    });
+
+    mainView.addEventListener('mouseleave', function() {
+        if (!isDragging) {
+            tablet.style.transition = 'transform 0.5s cubic-bezier(0.2,0.8,0.2,1)';
+            parallaxRX = 0;
+            parallaxRY = 0;
+            applyTransform();
+        }
+    });
+
+    mainView.addEventListener('mouseenter', function() {
+        tablet.style.transition = 'transform 0.1s ease-out';
+    });
+});
+</script>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ─── FAQ — indigo-50 ─── -->
+<section id="faq">
+  <div class="container">
     <div class="section-header reveal">
       <div class="section-label">Preguntas frecuentes</div>
       <h2 class="h2">Todo lo que necesitas saber</h2>
@@ -3485,361 +3853,6 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   </div>
 </section>
 
-<!-- ─── INTERACTIVE DASHBOARD SECTION ─── -->
-<style>
-/* SCOPED CSS FOR INTERACTIVE DASHBOARD */
-.interactive-dash-section {
-    display: flex;
-    height: 90vh;
-    min-height: 700px;
-    background-color: #050508;
-    color: #fff;
-    font-family: 'Inter', sans-serif;
-    position: relative;
-    overflow: hidden;
-    background-image: 
-        radial-gradient(circle at 50% 0%, rgba(0, 255, 204, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 100% 100%, rgba(100, 50, 255, 0.1) 0%, transparent 50%);
-}
-
-.interactive-dash-section * {
-    box-sizing: border-box;
-}
-
-/* MAIN CONTAINER (CENTERED) */
-.idash-main-view {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    background-image: 
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 50px 50px;
-    perspective: 1500px;
-    cursor: grab; /* Indicador de que se puede mover */
-}
-
-.idash-main-view:active {
-    cursor: grabbing;
-}
-
-/* TABLET CONTAINER */
-.idash-tablet-container {
-    position: absolute; /* Para permitir moverla libremente */
-    width: 850px;
-    height: 550px;
-    border-radius: 35px;
-    background: #111;
-    box-shadow: 
-        0 0 0 10px #222,
-        0 0 0 12px #444,
-        0 0 0 14px #111,
-        30px 40px 60px rgba(0,0,0,0.8),
-        -10px -10px 30px rgba(0, 255, 204, 0.1);
-    transition: transform 0.1s ease-out;
-    transform-style: preserve-3d;
-    user-select: none;
-}
-
-.idash-tablet-container::before {
-    content: '';
-    position: absolute;
-    left: -15px; 
-    top: 50%;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 8px;
-    background: #050510;
-    border-radius: 50%;
-    box-shadow: inset 0 0 2px rgba(255,255,255,0.4);
-    z-index: 100;
-}
-
-.idash-tablet-screen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 25px; 
-    background-color: #000;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    border: 2px solid #0a0a0a;
-}
-
-.idash-image-wrapper {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    overflow: hidden;
-    pointer-events: none;
-}
-
-.idash-screen-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; 
-    opacity: 0;
-    transition: opacity 0.6s ease;
-    animation: panDashboard 25s infinite alternate ease-in-out;
-    transform-origin: center center;
-}
-
-.idash-screen-image.loaded {
-    opacity: 1;
-}
-
-@keyframes panDashboard {
-    0% { transform: scale(1.1) translate(0%, 0%); }
-    25% { transform: scale(1.2) translate(-3%, -2%); }
-    50% { transform: scale(1.15) translate(2%, 3%); }
-    75% { transform: scale(1.2) translate(3%, -3%); }
-    100% { transform: scale(1.1) translate(0%, 0%); }
-}
-
-.idash-tech-overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    z-index: 10;
-}
-
-.idash-scanner-line {
-    position: absolute;
-    width: 100%;
-    height: 2px;
-    background: #00ffcc;
-    box-shadow: 0 0 20px 4px rgba(0, 255, 204, 0.5);
-    opacity: 0.5;
-    animation: scanTablet 4s linear infinite;
-}
-
-@keyframes scanTablet {
-    0% { top: -10%; opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { top: 110%; opacity: 0; }
-}
-
-.idash-data-point {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 0 15px 5px rgba(0, 255, 204, 0.5);
-    animation: pulseData 2s infinite alternate;
-}
-.idash-dp1 { top: 30%; left: 40%; animation-delay: 0s; }
-.idash-dp2 { top: 60%; left: 70%; animation-delay: 0.5s; }
-.idash-dp3 { top: 20%; left: 80%; animation-delay: 1s; }
-
-@keyframes pulseData {
-    0% { transform: scale(0.5); opacity: 0.3; }
-    100% { transform: scale(1.5); opacity: 0.9; }
-}
-
-.idash-app-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 15px 25px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
-    z-index: 20;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    pointer-events: none;
-}
-
-.idash-app-title {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: #00ffcc;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.8);
-}
-
-.idash-loader {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 50px; height: 50px;
-    border: 4px solid rgba(0,255,204,0.1);
-    border-top-color: #00ffcc;
-    border-radius: 50%;
-    animation: spin 1s infinite linear;
-    display: none;
-    z-index: 50;
-}
-
-@media (max-width: 900px) {
-    .interactive-dash-section {
-        height: auto;
-        min-height: 500px;
-        padding: 40px 0;
-    }
-    .idash-tablet-container {
-        transform: scale(0.4) !important;
-        position: relative;
-    }
-}
-</style>
-
-<section id="interactive-dashboard" class="interactive-dash-section">
-    <!-- Vista Principal (Sin Sidebar) -->
-    <main class="idash-main-view" id="idashMainView">
-        <div class="idash-tablet-container" id="idashTablet">
-            <div class="idash-tablet-screen">
-                <div class="idash-app-header">
-                    <span class="idash-app-title" id="idashAppTitle">Cargando...</span>
-                    <span style="font-size: 13px; font-weight: bold; color: #fff;">100% 🔋</span>
-                </div>
-                
-                <div class="idash-image-wrapper">
-                    <img src="../img1.png" class="idash-screen-image loaded" id="idashDisplayImage">
-                </div>
-                
-                <div class="idash-tech-overlay">
-                    <div class="idash-scanner-line"></div>
-                    <div class="idash-data-point idash-dp1"></div>
-                    <div class="idash-data-point idash-dp2"></div>
-                    <div class="idash-data-point idash-dp3"></div>
-                </div>
-
-                <div class="idash-loader" id="idashLoader"></div>
-            </div>
-        </div>
-    </main>
-</section>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const imagesList = [
-        { src: '../img1.png', title: 'Dashboard Principal' },
-        { src: '../img2.png', title: 'Módulo de CRM' },
-        { src: '../img3.png', title: 'Analítica Avanzada' },
-        { src: '../img4.png', title: 'Reporte de Operaciones' },
-        { src: '../img5.png', title: 'Flujo Financiero' },
-        { src: '../img6.png', title: 'Métricas de Marketing' },
-        { src: '../img7.png', title: 'Rendimiento Global' },
-        { src: '../img8.png', title: 'Configuración del Sistema' }
-    ];
-
-    let currentIndex = 0;
-    const imgElement = document.getElementById('idashDisplayImage');
-    const loader = document.getElementById('idashLoader');
-    const titleEl = document.getElementById('idashAppTitle');
-    
-    // Configurar la primera imagen
-    titleEl.textContent = imagesList[0].title;
-
-    function nextImage() {
-        currentIndex = (currentIndex + 1) % imagesList.length;
-        const item = imagesList[currentIndex];
-        
-        imgElement.classList.remove('loaded');
-        loader.style.display = 'block';
-
-        setTimeout(() => {
-            imgElement.src = item.src;
-            titleEl.textContent = item.title;
-            
-            // Randomizar puntos de datos
-            document.querySelectorAll('.idash-data-point').forEach(dp => {
-                dp.style.top = (20 + Math.random() * 60) + '%';
-                dp.style.left = (20 + Math.random() * 60) + '%';
-            });
-
-            imgElement.onload = () => {
-                loader.style.display = 'none';
-                imgElement.classList.add('loaded');
-            };
-        }, 400); 
-    }
-
-    // Cambiar imagen automáticamente cada 4 segundos
-    setInterval(nextImage, 4000);
-
-    // Sistema de Drag and Drop + Parallax
-    const mainView = document.getElementById('idashMainView');
-    const tablet = document.getElementById('idashTablet');
-    
-    let isDragging = false;
-    let startX, startY;
-    let initialX = 0, initialY = 0; // Offset actual
-    let currentRotateX = 0, currentRotateY = 0; // Rotación actual del parallax
-    
-    // Centrar inicialmente
-    function centerTablet() {
-        if(window.innerWidth > 900) {
-            tablet.style.left = '50%';
-            tablet.style.top = '50%';
-            tablet.style.marginLeft = '-425px'; // la mitad del ancho (850)
-            tablet.style.marginTop = '-275px';  // la mitad del alto (550)
-        }
-    }
-    centerTablet();
-    window.addEventListener('resize', centerTablet);
-
-    if (mainView && tablet) {
-        // Eventos para Drag
-        mainView.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - initialX;
-            startY = e.clientY - initialY;
-            tablet.style.transition = 'none'; // Quitar transición al arrastrar para que sea instantáneo
-        });
-
-        window.addEventListener('mouseup', () => {
-            isDragging = false;
-            tablet.style.transition = "transform 0.1s ease-out";
-        });
-
-        // Combinar Drag y Parallax en mousemove
-        mainView.addEventListener('mousemove', (e) => {
-            // Drag Logic
-            if (isDragging) {
-                initialX = e.clientX - startX;
-                initialY = e.clientY - startY;
-            }
-            
-            // Parallax Logic
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            const mouseX = e.clientX;
-            const mouseY = e.clientY;
-            
-            currentRotateX = ((centerY - mouseY) / 35).toFixed(2);
-            currentRotateY = ((mouseX - centerX) / 35).toFixed(2);
-            
-            // Aplicar ambas transformaciones (Translate del Drag + Rotate del Parallax)
-            tablet.style.transform = `translate(${initialX}px, ${initialY}px) rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg) translateZ(20px)`;
-        });
-
-        mainView.addEventListener('mouseleave', () => {
-            if(!isDragging) {
-                tablet.style.transition = "transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)";
-                tablet.style.transform = `translate(${initialX}px, ${initialY}px) rotateX(0deg) rotateY(0deg) translateZ(0px)`;
-            }
-        });
-
-        mainView.addEventListener('mouseenter', () => {
-            tablet.style.transition = "transform 0.1s ease-out";
-        });
-    }
-});
-</script>
-
 <!-- ─── FOOTER — NODE MEDIANOCHE (único dark) ─── -->
 <footer id="footer">
   <div class="container">
@@ -3855,12 +3868,12 @@ document.addEventListener("DOMContentLoaded", function() {
       <div>
         <div class="footer-col-ttl">Productos</div>
         <ul class="footer-links">
-          <li><a href="#productos">— Web Básica & Premium</a></li>
-          <li><a href="#productos">— Cotizador Digital</a></li>
-          <li><a href="#productos">— Facturador CFDI</a></li>
-          <li><a href="#productos">— Punto de Venta</a></li>
-          <li><a href="#productos">— Asistente IA</a></li>
-          <li><a href="#productos">— Dashboard Ejecutivo</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToTab('ind')">— Ver Presencia digital</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToTab('pre')">— Ver Operación y ventas</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToTab('pre','cfdi')">— Facturador CFDI</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToTab('adv')">— Ver Avanzados</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToTab('bun')">— Ver soluciones con ahorro</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToTab('rec')">— Recurrentes</a></li>
         </ul>
       </div>
       <div>
@@ -3868,7 +3881,6 @@ document.addEventListener("DOMContentLoaded", function() {
         <ul class="footer-links">
           <li><a href="#proceso">Cómo funciona</a></li>
           <li><a href="#showcase-video">Visual</a></li>
-          <li><a href="#testimonios">Testimonios</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>
       </div>
@@ -3991,7 +4003,7 @@ document.addEventListener("DOMContentLoaded", function() {
         <!-- S1 -->
         <div class="pm-section">
           <div class="pm-section-header"><div class="pm-sec-num" aria-hidden="true">1</div><h3>Identidad y Domicilio del Responsable</h3></div>
-          <p><strong>Alianza Quimera para la Innovación S.A.S.</strong> ("NODE" o "el Responsable"), domicilio en Estado de México, México. Responsable del tratamiento de datos conforme a la <strong>LFPDPPP</strong> publicada en el DOF el 20 de marzo de 2025.</p>
+          <p><strong>Alianza Quimera para la Innovación S.A.S. de C.V.</strong> ("NODE" o "el Responsable"), domicilio en Estado de México, México. Responsable del tratamiento de datos conforme a la <strong>LFPDPPP</strong> publicada en el DOF el 20 de marzo de 2025.</p>
           <div class="pm-contact-card">
             <h4>Contacto de Privacidad</h4>
             <p>Para asuntos relacionados con privacidad y protección de sus datos:</p>
@@ -4105,7 +4117,7 @@ document.addEventListener("DOMContentLoaded", function() {
           <p>La <strong>Secretaría Anticorrupción y Buen Gobierno</strong> (antes INAI) supervisa el cumplimiento de la LFPDPPP 2025. Puede acudir a ella si considera que se vulneraron sus derechos.</p>
           <div class="pm-contact-card">
             <h4>NODE — Responsable de Privacidad</h4>
-            <p>Alianza Quimera para la Innovación S.A.S. · Estado de México, México</p>
+            <p>Alianza Quimera para la Innovación S.A.S. de C.V. · Estado de México, México</p>
             <a href="mailto:hola@nodeq.com.mx" class="pm-contact-link">
               <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="3" width="14" height="10" rx="2" stroke-width="1.3"/><path d="M1 5l7 5 7-5" stroke-width="1.3" stroke-linecap="round"/></svg>
               hola@nodeq.com.mx
@@ -4181,7 +4193,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         <div class="pm-section">
           <div class="pm-section-header"><div class="pm-sec-num" aria-hidden="true">1</div><h3>Aceptación de los Términos</h3></div>
-          <p>Al acceder y utilizar el sitio web de NODE usted acepta quedar obligado por estos Términos. El Sitio es operado por <strong>Alianza Quimera para la Innovación S.A.S.</strong>, Estado de México, México.</p>
+          <p>Al acceder y utilizar el sitio web de NODE usted acepta quedar obligado por estos Términos. El Sitio es operado por <strong>Alianza Quimera para la Innovación S.A.S. de C.V.</strong>, Estado de México, México.</p>
           <div class="pm-callout"><strong>Aviso:</strong> NODE se reserva el derecho de actualizar estos Términos en cualquier momento. El uso continuado implica aceptación de los cambios.</div>
         </div>
 
@@ -4247,7 +4259,7 @@ document.addEventListener("DOMContentLoaded", function() {
           <p>Estos Términos se rigen por las leyes de los <strong>Estados Unidos Mexicanos</strong>. Para cualquier controversia, las partes se someten a los <strong>tribunales competentes de la Ciudad de México</strong>, renunciando a cualquier otro fuero.</p>
           <div class="pm-contact-card">
             <h4>NODE Soluciones Tecnológicas</h4>
-            <p>Alianza Quimera para la Innovación S.A.S. · Estado de México, México</p>
+            <p>Alianza Quimera para la Innovación S.A.S. de C.V. · Estado de México, México</p>
             <a href="mailto:hola@nodeq.com.mx" class="pm-contact-link">
               <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="3" width="14" height="10" rx="2" stroke-width="1.3"/><path d="M1 5l7 5 7-5" stroke-width="1.3" stroke-linecap="round"/></svg>
               hola@nodeq.com.mx
@@ -4308,9 +4320,9 @@ document.addEventListener("DOMContentLoaded", function() {
     </button>
   </div>
   <div class="nod-escalate">
-    <a href="https://wa.me/527751023249?text=Hola%2C%20vengo%20del%20sitio%20de%20NODE%20y%20quiero%20hablar%20con%20alguien" target="_blank" rel="noopener">
+    <a href="https://wa.me/527751023249?text=Hola%2C%20vengo%20del%20sitio%20de%20NODE%20y%20quiero%20contratar%20un%20servicio" target="_blank" rel="noopener">
       Prefiero hablar con una persona &#x2192;
-    </a>
+  </a>
   </div>
 </div>
 <div class="nod-fab">
@@ -4322,7 +4334,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 
 <!-- ─── WHATSAPP FLOAT ─── -->
-<a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20información%20sobre%20NODE" class="wa-float" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+<a href="https://wa.me/527751023249?text=Hola%2C%20quiero%20contratar%20un%20servicio%20NODE" class="wa-float" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
   <div class="wa-tip">¿Hablamos? Respondo hoy</div>
   <div class="wa-btn">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -4340,7 +4352,7 @@ window.addEventListener('scroll', () => {
 function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
 function closeMenu()  { document.getElementById('mobileMenu').classList.remove('open'); }
 
-// ── CHATBOT TOGGLE — legacy alias handled by NOD ──
+
 
 // ── SCROLL REVEAL (con fallback garantizado) ──
 function revealAll() {
@@ -4403,7 +4415,7 @@ function toggleFaq(btn) {
 // ══════════════════════════════════════════════════════════
 
 var NOD_WA  = '527751023249';
-var NOD_CAL = 'https://calendly.com/hola-nodeq/20-minute-meeting-clone';
+var NOD_CAL = 'https://calendly.com/nodeq/20-minute-meeting-clone';
 
 // ── STATE ──
 var nodHistory       = [];
@@ -4457,11 +4469,13 @@ function toggleChatbot(force) { nodToggle(force); }
 function nodGreet() {
   nodBotMsg('👋 ¡Hola! Soy NOD, el asistente de NODE Soluciones Tecnológicas.', []);
   setTimeout(function() {
-    nodBotMsg('Tenemos 15 productos y 8 bundles para digitalizar tu negocio en 5–22 días. ¿Cómo te puedo ayudar?', [
-      '📦 Ver catálogo completo',
-      '💡 Ver bundles con ahorro',
-      '📅 Agendar diagnóstico gratis',
-      '❓ Tengo una pregunta'
+    nodBotMsg('Tenemos 15 productos y 8 soluciones para digitalizar tu negocio en 5–22 días. ¿Cómo te puedo ayudar?', [
+      '📦 Ver Presencia digital',                               
+      '📦 Ver Operación y ventas',
+      '📦 Ver Avanzados',
+      '💡 Ver soluciones con ahorro',
+      '⚙️Recurrentes',
+      '📅 Agendar diagnóstico gratis'
     ]);
   }, 900);
 }
@@ -5471,7 +5485,6 @@ sections.forEach(s => secObs.observe(s));
     toast.classList.add('ct-visible');
     setTimeout(function() { toast.classList.remove('ct-visible'); }, 3500);
   }
-
   /* ── Escape cierra el modal ── */
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -5483,6 +5496,71 @@ sections.forEach(s => secObs.observe(s));
   });
 
 })();
+</script>
+
+<!-- ── FOOTER TAB NAVIGATOR ── -->
+<script>
+/**
+ * scrollToTab(tabId, highlight)
+ * Navega a #productos, activa el tab correcto y, si se indica
+ * highlight='cfdi', hace scroll y resalta la card del Facturador.
+ *
+ * tabId map (coincide con switchTab existente):
+ *   'ind' → Presencia digital
+ *   'pre' → Operación y ventas
+ *   'adv' → Avanzados
+ *   'bun' → Soluciones / Bundles
+ *   'rec' → Recurrentes
+ */
+function scrollToTab(tabId, highlight) {
+  var section = document.getElementById('productos');
+  if (!section) return;
+
+  /* 1 — Scroll suave a la sección */
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  /* 2 — Activar el tab tras dejar que el scroll termine */
+  setTimeout(function () {
+    var tabBar = section.querySelector('.tab-bar');
+    if (!tabBar) return;
+
+    var tabButtons = tabBar.querySelectorAll('.tab-btn');
+    var tabMap = { ind: 0, pre: 1, adv: 2, bun: 3, rec: 4 };
+    var idx = tabMap[tabId];
+
+    if (typeof idx !== 'undefined' && tabButtons[idx]) {
+      tabButtons[idx].click();  /* reutiliza switchTab() ya existente */
+    }
+
+    /* 3 — Highlight específico de la card de Facturador CFDI */
+    if (highlight === 'cfdi') {
+      setTimeout(function () {
+        var panel = document.getElementById('tab-pre');
+        if (!panel) return;
+        var cards = panel.querySelectorAll('.price-card');
+        var cfdiCard = null;
+        cards.forEach(function (c) {
+          if (!cfdiCard &&
+              (c.textContent.indexOf('Facturador') !== -1 ||
+               c.textContent.indexOf('CFDI') !== -1)) {
+            cfdiCard = c;
+          }
+        });
+        if (cfdiCard) {
+          cfdiCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          /* Ring de foco visual — respeta las CSS vars del design system */
+          cfdiCard.style.transition  = 'box-shadow 0.3s ease, border-color 0.3s ease';
+          cfdiCard.style.boxShadow   = '0 0 0 3px rgba(67,56,202,0.40), 0 8px 24px rgba(67,56,202,0.18)';
+          cfdiCard.style.borderColor = '#4338CA';
+          setTimeout(function () {
+            cfdiCard.style.boxShadow   = '';
+            cfdiCard.style.borderColor = '';
+          }, 2400);
+        }
+      }, 420);
+    }
+  }, 520);
+}
 </script>
 
 <!-- PREMIUM CURSOR GLOW -->
@@ -5620,6 +5698,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
-
 </body>
-</html>
+</html> 

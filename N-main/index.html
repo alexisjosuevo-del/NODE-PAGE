@@ -5124,14 +5124,21 @@ function openBIM(id) {
   });
   // Guardar posición actual ANTES de bloquear
   _bimScrollY = window.scrollY || window.pageYOffset;
-  // Bloquear scroll sin mover el body (evita el salto al cerrar)
-  document.documentElement.style.overflow = 'hidden';
+  // Fijar el body en su posición actual para que no salte
+  document.body.style.top = '-' + _bimScrollY + 'px';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+  document.body.style.overflow = 'hidden';
   overlay.classList.add('open');
 }
 
 function _closeBIMBody() {
-  // Restaurar scroll del documento sin tocar la posición
-  document.documentElement.style.overflow = '';
+  // Restaurar el body exactamente donde estaba
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  document.body.style.overflow = '';
+  window.scrollTo({ top: _bimScrollY, behavior: 'instant' });
 }
 
 function closeBIM(id) {
@@ -5691,5 +5698,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
+
 </body>
-</html>
+</html> 

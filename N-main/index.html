@@ -5133,12 +5133,25 @@ function openBIM(id) {
 }
 
 function _closeBIMBody() {
-  // Restaurar el body exactamente donde estaba
+  // 1. Desactivar temporalmente el scroll-behavior:smooth del <html>
+  //    para que el salto de restauración sea imperceptible.
+  var htmlEl = document.documentElement;
+  var prevScrollBehavior = htmlEl.style.scrollBehavior;
+  htmlEl.style.scrollBehavior = 'auto';
+
+  // 2. Restaurar el body exactamente donde estaba
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.width = '';
   document.body.style.overflow = '';
-  window.scrollTo({ top: _bimScrollY, behavior: 'instant' });
+
+  // 3. Saltar sin animación al punto exacto guardado en openBIM()
+  window.scrollTo(0, _bimScrollY);
+
+  // 4. Re-habilitar smooth scroll en el siguiente frame de pintado
+  requestAnimationFrame(function() {
+    htmlEl.style.scrollBehavior = prevScrollBehavior;
+  });
 }
 
 function closeBIM(id) {
@@ -5698,6 +5711,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
-
 </body>
-</html> 
+</html>

@@ -669,10 +669,15 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   box-shadow:var(--shadow-xl);
   width:100%;max-width:480px;
   max-height:88vh;overflow-y:auto;
-  transform:scale(.94) translateY(12px);
-  transition:transform var(--dur-slow) var(--ease-spring),opacity var(--dur-slow)
+  transform:scale(.94) translateY(16px);
+  opacity:0;
+  transition:transform var(--dur-slow) var(--ease-spring),
+             opacity var(--dur-slow) var(--ease-base)
 }
-.bim-overlay.open .bim-panel{transform:scale(1) translateY(0)}
+.bim-overlay.open .bim-panel{
+  transform:scale(1) translateY(0);
+  opacity:1
+}
 
 /* Scrollbar del panel */
 .bim-panel::-webkit-scrollbar{width:4px}
@@ -1642,82 +1647,9 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .ns-sub-header .h3{color:var(--text-primary)}
 
 </style>
-<!-- ✅ BIM INLINE — Funciones de modal "Qué incluye" / "Al terminar tendrás"
-     Incrustadas directamente para evitar dependencia de archivo externo -->
-<script data-cfasync="false">
-(function () {
-  'use strict';
-
-  /* ── Abre el modal BIM ── */
-  function openBIM(id) {
-    /* Cerrar cualquier otro modal abierto primero */
-    document.querySelectorAll('.bim-overlay.open').forEach(function (el) {
-      el.classList.remove('open');
-    });
-
-    var overlay = document.getElementById(id);
-    if (!overlay) return;
-
-    overlay.classList.add('open');
-
-    /* Bloquear scroll del body sin causar salto de layout */
-    var scrollY = window.scrollY;
-    document.body.style.position   = 'fixed';
-    document.body.style.top        = '-' + scrollY + 'px';
-    document.body.style.left       = '0';
-    document.body.style.right      = '0';
-    document.body.style.overflowY  = 'scroll'; /* mantiene ancho */
-    document.body.dataset.scrollY  = scrollY;
-
-    /* Cerrar con Escape */
-    function onKeyDown(e) {
-      if (e.key === 'Escape') {
-        closeBIM(id);
-        document.removeEventListener('keydown', onKeyDown);
-      }
-    }
-    document.addEventListener('keydown', onKeyDown);
-  }
-
-  /* ── Cierra el modal BIM ── */
-  function closeBIM(id) {
-    var overlay = document.getElementById(id);
-    if (!overlay) return;
-
-    overlay.classList.remove('open');
-    _restoreScroll();
-  }
-
-  /* ── Cierra al hacer clic en el overlay (fuera del panel) ── */
-  function closeBIMOutside(event, overlay) {
-    if (event.target === overlay) {
-      overlay.classList.remove('open');
-      _restoreScroll();
-    }
-  }
-
-  /* ── Restaura el scroll del body al punto exacto donde estaba ── */
-  function _restoreScroll() {
-    /* Solo restaurar si el body está bloqueado */
-    if (document.body.style.position !== 'fixed') return;
-
-    var scrollY = parseInt(document.body.dataset.scrollY || '0', 10);
-    document.body.style.position  = '';
-    document.body.style.top       = '';
-    document.body.style.left      = '';
-    document.body.style.right     = '';
-    document.body.style.overflowY = '';
-    delete document.body.dataset.scrollY;
-
-    window.scrollTo({ top: scrollY, behavior: 'instant' });
-  }
-
-  /* Exponer al scope global para los onclick del HTML */
-  window.openBIM        = openBIM;
-  window.closeBIM       = closeBIM;
-  window.closeBIMOutside = closeBIMOutside;
-})();
-</script>
+<!-- ✅ BIM FIX — Cloudflare Rocket Loader: data-cfasync="false" garantiza que
+     openBIM/closeBIM estén definidas ANTES de cualquier interacción del usuario -->
+<script data-cfasync="false" src="/bim.js"></script>
 </head>
 <body>
 
@@ -5208,13 +5140,22 @@ function openBIM(id) {
   overlay.classList.add('open');
 }
 
+// Duración de la transición de salida en ms — debe coincidir con --dur-slow (300ms)
+var _BIM_EXIT_MS = 300;
+var _bimRestoreTimer = null;
+
 function _closeBIMBody() {
-  // Restaurar el body exactamente donde estaba
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.width = '';
-  document.body.style.overflow = '';
-  window.scrollTo({ top: _bimScrollY, behavior: 'instant' });
+  // Cancelar cualquier restauración pendiente antes de iniciar una nueva
+  if (_bimRestoreTimer) { clearTimeout(_bimRestoreTimer); _bimRestoreTimer = null; }
+  // Esperar que termine la transición CSS de salida (.open removido) antes de restaurar
+  _bimRestoreTimer = setTimeout(function () {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    window.scrollTo({ top: _bimScrollY, behavior: 'instant' });
+    _bimRestoreTimer = null;
+  }, _BIM_EXIT_MS);
 }
 
 function closeBIM(id) {

@@ -669,15 +669,10 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   box-shadow:var(--shadow-xl);
   width:100%;max-width:480px;
   max-height:88vh;overflow-y:auto;
-  transform:scale(.94) translateY(16px);
-  opacity:0;
-  transition:transform var(--dur-slow) var(--ease-spring),
-             opacity var(--dur-slow) var(--ease-base)
+  transform:scale(.94) translateY(12px);
+  transition:transform var(--dur-slow) var(--ease-spring),opacity var(--dur-slow)
 }
-.bim-overlay.open .bim-panel{
-  transform:scale(1) translateY(0);
-  opacity:1
-}
+.bim-overlay.open .bim-panel{transform:scale(1) translateY(0)}
 
 /* Scrollbar del panel */
 .bim-panel::-webkit-scrollbar{width:4px}
@@ -1435,7 +1430,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .nod-tooltip{background:#0D1225;color:#fff;font-size:.8rem;font-weight:600;padding:.45rem .875rem;border-radius:10px;white-space:nowrap;opacity:0;transform:translateX(8px);transition:opacity .2s,transform .2s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nod-fab:hover .nod-tooltip{opacity:1;transform:translateX(0)}
 /* Window */
-.nod-window{position:fixed;right:1.5rem;bottom:5.8rem;width:380px;max-width:calc(100vw - 2rem);background:#fff;border:1px solid #E4E8F0;border-radius:20px;box-shadow:0 24px 64px rgba(30,45,64,.14),0 8px 24px rgba(30,45,64,.08);z-index:302;overflow:hidden;display:flex;flex-direction:column;transform:scale(.92) translateY(16px);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s ease;max-height:85vh}
+.nod-window{position:fixed;right:1.5rem;bottom:5.8rem;width:380px;max-width:calc(100vw - 2rem);background:#fff;border:1px solid #E4E8F0;border-radius:20px;box-shadow:0 24px 64px rgba(30,45,64,.14),0 8px 24px rgba(30,45,64,.08);z-index:302;overflow:hidden;display:flex;flex-direction:column;transform:scale(.92) translateY(16px);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s ease;max-height:calc(100dvh - 64px - 6.5rem)}
 .nod-window.open{transform:scale(1) translateY(0);opacity:1;pointer-events:auto}
 /* Header */
 .nod-header{padding:.875rem 1rem;background:#4338CA;color:#fff;display:flex;align-items:center;gap:.75rem;flex-shrink:0}
@@ -1484,7 +1479,7 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .nod-escalate a{color:#0D9488;font-size:.79rem;font-weight:600;text-decoration:none;font-family:'Space Grotesk',sans-serif}
 .nod-escalate a:hover{color:#0F766E;text-decoration:underline}
 /* Mobile */
-@media(max-width:640px){.nod-fab{right:1rem;bottom:1rem}.nod-window{right:.75rem;bottom:5.2rem;width:calc(100vw - 1.5rem);max-height:80vh}}
+@media(max-width:640px){.nod-fab{right:1rem;bottom:1rem}.nod-window{right:.75rem;bottom:5.2rem;width:calc(100vw - 1.5rem);max-height:calc(100dvh - 64px - 5.5rem)}}
 @media(max-width:640px){.wa-float{right:1rem;bottom:5.2rem}}
 
 
@@ -5140,22 +5135,13 @@ function openBIM(id) {
   overlay.classList.add('open');
 }
 
-// Duración de la transición de salida en ms — debe coincidir con --dur-slow (300ms)
-var _BIM_EXIT_MS = 300;
-var _bimRestoreTimer = null;
-
 function _closeBIMBody() {
-  // Cancelar cualquier restauración pendiente antes de iniciar una nueva
-  if (_bimRestoreTimer) { clearTimeout(_bimRestoreTimer); _bimRestoreTimer = null; }
-  // Esperar que termine la transición CSS de salida (.open removido) antes de restaurar
-  _bimRestoreTimer = setTimeout(function () {
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-    document.body.style.overflow = '';
-    window.scrollTo({ top: _bimScrollY, behavior: 'instant' });
-    _bimRestoreTimer = null;
-  }, _BIM_EXIT_MS);
+  // Restaurar el body exactamente donde estaba
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  document.body.style.overflow = '';
+  window.scrollTo({ top: _bimScrollY, behavior: 'instant' });
 }
 
 function closeBIM(id) {
@@ -5715,6 +5701,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
-
 </body>
 </html>

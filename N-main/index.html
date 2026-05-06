@@ -1642,6 +1642,9 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .ns-sub-header .h3{color:var(--text-primary)}
 
 </style>
+<!-- ✅ BIM FIX — Cloudflare Rocket Loader: data-cfasync="false" garantiza que
+     openBIM/closeBIM estén definidas ANTES de cualquier interacción del usuario -->
+<script data-cfasync="false" src="/bim.js"></script>
 </head>
 <body>
 
@@ -4341,7 +4344,7 @@ document.addEventListener("DOMContentLoaded", function() {
   </div>
 </a>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false">
 // ── NAVBAR SCROLL ──
 const nb = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
@@ -5133,25 +5136,12 @@ function openBIM(id) {
 }
 
 function _closeBIMBody() {
-  // 1. Desactivar temporalmente el scroll-behavior:smooth del <html>
-  //    para que el salto de restauración sea imperceptible.
-  var htmlEl = document.documentElement;
-  var prevScrollBehavior = htmlEl.style.scrollBehavior;
-  htmlEl.style.scrollBehavior = 'auto';
-
-  // 2. Restaurar el body exactamente donde estaba
+  // Restaurar el body exactamente donde estaba
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.width = '';
   document.body.style.overflow = '';
-
-  // 3. Saltar sin animación al punto exacto guardado en openBIM()
-  window.scrollTo(0, _bimScrollY);
-
-  // 4. Re-habilitar smooth scroll en el siguiente frame de pintado
-  requestAnimationFrame(function() {
-    htmlEl.style.scrollBehavior = prevScrollBehavior;
-  });
+  window.scrollTo({ top: _bimScrollY, behavior: 'instant' });
 }
 
 function closeBIM(id) {
@@ -5711,5 +5701,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
+
 </body>
 </html>

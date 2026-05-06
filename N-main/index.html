@@ -1642,9 +1642,82 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .ns-sub-header .h3{color:var(--text-primary)}
 
 </style>
-<!-- ✅ BIM FIX — Cloudflare Rocket Loader: data-cfasync="false" garantiza que
-     openBIM/closeBIM estén definidas ANTES de cualquier interacción del usuario -->
-<script data-cfasync="false" src="/bim.js"></script>
+<!-- ✅ BIM INLINE — Funciones de modal "Qué incluye" / "Al terminar tendrás"
+     Incrustadas directamente para evitar dependencia de archivo externo -->
+<script data-cfasync="false">
+(function () {
+  'use strict';
+
+  /* ── Abre el modal BIM ── */
+  function openBIM(id) {
+    /* Cerrar cualquier otro modal abierto primero */
+    document.querySelectorAll('.bim-overlay.open').forEach(function (el) {
+      el.classList.remove('open');
+    });
+
+    var overlay = document.getElementById(id);
+    if (!overlay) return;
+
+    overlay.classList.add('open');
+
+    /* Bloquear scroll del body sin causar salto de layout */
+    var scrollY = window.scrollY;
+    document.body.style.position   = 'fixed';
+    document.body.style.top        = '-' + scrollY + 'px';
+    document.body.style.left       = '0';
+    document.body.style.right      = '0';
+    document.body.style.overflowY  = 'scroll'; /* mantiene ancho */
+    document.body.dataset.scrollY  = scrollY;
+
+    /* Cerrar con Escape */
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        closeBIM(id);
+        document.removeEventListener('keydown', onKeyDown);
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+  }
+
+  /* ── Cierra el modal BIM ── */
+  function closeBIM(id) {
+    var overlay = document.getElementById(id);
+    if (!overlay) return;
+
+    overlay.classList.remove('open');
+    _restoreScroll();
+  }
+
+  /* ── Cierra al hacer clic en el overlay (fuera del panel) ── */
+  function closeBIMOutside(event, overlay) {
+    if (event.target === overlay) {
+      overlay.classList.remove('open');
+      _restoreScroll();
+    }
+  }
+
+  /* ── Restaura el scroll del body al punto exacto donde estaba ── */
+  function _restoreScroll() {
+    /* Solo restaurar si el body está bloqueado */
+    if (document.body.style.position !== 'fixed') return;
+
+    var scrollY = parseInt(document.body.dataset.scrollY || '0', 10);
+    document.body.style.position  = '';
+    document.body.style.top       = '';
+    document.body.style.left      = '';
+    document.body.style.right     = '';
+    document.body.style.overflowY = '';
+    delete document.body.dataset.scrollY;
+
+    window.scrollTo({ top: scrollY, behavior: 'instant' });
+  }
+
+  /* Exponer al scope global para los onclick del HTML */
+  window.openBIM        = openBIM;
+  window.closeBIM       = closeBIM;
+  window.closeBIMOutside = closeBIMOutside;
+})();
+</script>
 </head>
 <body>
 

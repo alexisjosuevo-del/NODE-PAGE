@@ -590,6 +590,9 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.8rem;
   padding:.6rem .75rem;border-radius:var(--radius-base);border:none;
   cursor:pointer;text-align:center;line-height:1.3;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
   transition:background var(--dur-base) var(--ease-base),
              transform var(--dur-fast) var(--ease-base),
              box-shadow var(--dur-base) var(--ease-base);
@@ -669,6 +672,8 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   box-shadow:var(--shadow-xl);
   width:100%;max-width:480px;
   max-height:88vh;overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
   transform:scale(.94) translateY(12px);
   transition:transform var(--dur-slow) var(--ease-spring),opacity var(--dur-slow)
 }
@@ -5121,39 +5126,57 @@ var _bimScrollY = 0;
 function openBIM(id) {
   var overlay = document.getElementById(id);
   if (!overlay) return;
+
   // Cerrar cualquier otro modal abierto sin restaurar scroll todavía
   document.querySelectorAll('.bim-overlay.open').forEach(function(el) {
     el.classList.remove('open');
   });
+
   // Guardar posición actual ANTES de bloquear
   _bimScrollY = window.scrollY || window.pageYOffset;
-  // Fijar el body en su posición actual para que no salte
-  document.body.style.top = '-' + _bimScrollY + 'px';
+
+  // FIX: usar overflowY:'scroll' (no 'hidden') para mantener el ancho del
+  // scrollbar en desktop y evitar el layout-shift al abrir/cerrar el modal
+  document.body.style.top      = '-' + _bimScrollY + 'px';
   document.body.style.position = 'fixed';
-  document.body.style.width = '100%';
-  document.body.style.overflow = 'hidden';
+  document.body.style.width    = '100%';
+  document.body.style.overflowY = 'scroll';
+
   overlay.classList.add('open');
+
+  // Foco accesible: mover al botón de cierre tras la animación de entrada
+  var closeBtn = overlay.querySelector('.bim-close');
+  if (closeBtn) setTimeout(function() { closeBtn.focus(); }, 80);
 }
 
 function _closeBIMBody() {
-  // Restaurar el body exactamente donde estaba
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.width = '';
-  document.body.style.overflow = '';
-  window.scrollTo({ top: _bimScrollY, behavior: 'instant' });
+  // Capturar valor antes de limpiar los estilos
+  var scrollY = _bimScrollY;
+
+  // FIX: limpiar overflowY igual que se asignó
+  document.body.style.position  = '';
+  document.body.style.top       = '';
+  document.body.style.width     = '';
+  document.body.style.overflowY = '';
+
+  // FIX: window.scrollTo(x,y) tiene soporte universal (IE9+) a diferencia de
+  // { behavior:'instant' } que no está disponible en todos los móviles
+  window.scrollTo(0, scrollY);
 }
 
 function closeBIM(id) {
   var overlay = document.getElementById(id);
-  if (!overlay) return;
+  if (!overlay || !overlay.classList.contains('open')) return;
   overlay.classList.remove('open');
   _closeBIMBody();
 }
 
 function closeBIMOutside(event, overlay) {
-  // Cerrar solo si se hace clic directamente en el overlay (fuera del panel)
-  if (event.target === overlay) {
+  // FIX: en lugar de comparar event.target === overlay (falla en mobile porque
+  // el touch puede registrar un nodo hijo del backdrop), comprobamos si el
+  // click ocurrió FUERA del panel usando Node.contains()
+  var panel = overlay.querySelector('.bim-panel');
+  if (!panel || !panel.contains(event.target)) {
     overlay.classList.remove('open');
     _closeBIMBody();
   }
@@ -5169,6 +5192,13 @@ document.addEventListener('keydown', function(e) {
     });
     if (anyOpen) _closeBIMBody();
   }
+});
+
+// FIX: impedir que los clicks DENTRO del panel burbujeen al overlay y
+// disparen accidentalmente closeBIMOutside (crítico en mobile/touch)
+document.querySelectorAll('.bim-panel').forEach(function(panel) {
+  panel.addEventListener('click', function(e) { e.stopPropagation(); });
+  panel.addEventListener('touchend', function(e) { e.stopPropagation(); });
 });
 // FIN BUNDLE INFO MODALS
 

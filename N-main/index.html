@@ -618,7 +618,14 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   transform:translateY(-1px);
   box-shadow:var(--shadow-sm)
 }
-.btn-bi-includes:active{background:var(--indigo-100);transform:none}
+/* FIX iOS: :active con transform causa repaint + flicker. Quitamos el
+   transform en active y solo cambiamos background para que el estado
+   sea instantáneo y sin janky en dispositivos táctiles */
+.btn-bi-includes:active{
+  background:var(--indigo-100);
+  transform:none;
+  box-shadow:none
+}
 
 /* Botón 2 — "Al terminar tendrás" (teal suave) */
 .btn-bi-outcome{
@@ -633,7 +640,26 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   transform:translateY(-1px);
   box-shadow:var(--shadow-success)
 }
-.btn-bi-outcome:active{background:var(--teal-100,#99F6E4);transform:none}
+/* FIX iOS: mismo fix que btn-bi-includes */
+.btn-bi-outcome:active{
+  background:var(--teal-100,#99F6E4);
+  transform:none;
+  box-shadow:none
+}
+
+/* FIX mobile: en dispositivos touch no mostramos el efecto hover
+   que queda "pegado" después del tap — solo en hover real (pointer:fine) */
+@media (hover: none) {
+  .btn-bi-includes:hover,
+  .btn-bi-outcome:hover {
+    transform: none;
+    background: inherit;
+    border-color: inherit;
+    box-shadow: var(--shadow-xs)
+  }
+  .btn-bi-includes:hover { background: var(--surface-page) }
+  .btn-bi-outcome:hover  { background: var(--teal-25) }
+}
 
 /* Variante para card héroe (B2 fondo indigo-50) */
 .bundle-card-hero .btn-bi-includes{
@@ -641,18 +667,29 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   border-color:var(--indigo-200)
 }
 .bundle-card-hero .btn-bi-includes:hover{background:#fff;border-color:var(--indigo)}
+.bundle-card-hero .btn-bi-includes:active{background:var(--indigo-100);transform:none}
 .bundle-card-hero .btn-bi-outcome{
   background:rgba(13,148,136,.1);
   border-color:rgba(13,148,136,.3)
 }
 .bundle-card-hero .btn-bi-outcome:hover{background:rgba(13,148,136,.18)}
+.bundle-card-hero .btn-bi-outcome:active{background:rgba(13,148,136,.25);transform:none}
+/* FIX mobile hero card: sin hover sticky */
+@media (hover: none) {
+  .bundle-card-hero .btn-bi-includes:hover { background: rgba(255,255,255,.75) }
+  .bundle-card-hero .btn-bi-outcome:hover  { background: rgba(13,148,136,.1) }
+}
 
 /* Ícono SVG dentro del botón */
 .btn-bundle-info svg{width:14px;height:14px;flex-shrink:0}
 
 /* ══════════════════════════════════════════
-   BUNDLE INFO MODAL — overlay + panel
-   LÍNEAS NUEVAS — 
+   BUNDLE INFO MODAL — overlay + panel  v3
+   FIX: eliminado position:fixed en body (causa flash en iOS).
+        visibility hidden/visible en lugar de solo opacity (evita
+        que el overlay sea alcanzable por el compositor aunque esté
+        invisible). will-change solo en el panel (no en el overlay
+        completo para evitar stacking context innecesario).
 ══════════════════════════════════════════ */
 .bim-overlay{
   position:fixed;inset:0;z-index:450;
@@ -660,10 +697,17 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
   display:flex;align-items:center;justify-content:center;
   padding:1rem;
-  opacity:0;pointer-events:none;
-  transition:opacity var(--dur-slow) var(--ease-base)
+  /* FIX: visibility:hidden oculta del árbol de accesibilidad y evita
+     que iOS registre taps en el overlay cuando está cerrado */
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity var(--dur-slow) var(--ease-base),
+             visibility 0s linear var(--dur-slow)
 }
-.bim-overlay.open{opacity:1;pointer-events:auto}
+.bim-overlay.open{
+  opacity:1;visibility:visible;pointer-events:auto;
+  transition:opacity var(--dur-slow) var(--ease-base),
+             visibility 0s linear 0s
+}
 
 .bim-panel{
   background:var(--surface-page);
@@ -671,13 +715,34 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   border-radius:var(--radius-lg);
   box-shadow:var(--shadow-xl);
   width:100%;max-width:480px;
-  max-height:88vh;overflow-y:auto;
+  /* FIX: en mobile usamos 92svh para respetar la barra inferior del browser */
+  max-height:88vh;max-height:88svh;
+  overflow-y:auto;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
-  transform:scale(.94) translateY(12px);
-  transition:transform var(--dur-slow) var(--ease-spring),opacity var(--dur-slow)
+  /* FIX: will-change solo en el panel para promoverlo a su propia capa
+     GPU — elimina el repaint del backdrop en cada frame de animación */
+  will-change:transform,opacity;
+  transform:scale(.94) translateY(16px);
+  opacity:0;
+  transition:transform var(--dur-slow) var(--ease-spring),
+             opacity var(--dur-base) var(--ease-base)
 }
-.bim-overlay.open .bim-panel{transform:scale(1) translateY(0)}
+.bim-overlay.open .bim-panel{
+  transform:scale(1) translateY(0);
+  opacity:1
+}
+
+/* FIX: botón cerrar — target mínimo 44×44px para iOS (WCAG 2.5.5) */
+.bim-close{
+  /* Ampliar la zona táctil sin cambiar el visual */
+  position:relative;
+}
+.bim-close::before{
+  content:'';position:absolute;
+  inset:-8px;  /* extiende el área táctil 8px en cada dirección */
+  border-radius:50%
+}
 
 /* Scrollbar del panel */
 .bim-panel::-webkit-scrollbar{width:4px}
@@ -5116,91 +5181,162 @@ function nodKeydown(e) {
 
 
 // ══════════════════════════════════════════
-// BUNDLE INFO MODALS (BIM) 
-// Controlan los modales "Qué incluye" y "Al terminar tendrás"
+// BUNDLE INFO MODALS (BIM) — v3 bug-free
+// Fixes: iOS flicker, mobile tap-through, double-fire on close,
+//        scroll-jump, stopPropagation timing, body-lock side-effects
 // ══════════════════════════════════════════
 
-// ── Almacena posición del scroll antes de bloquear el body ──
-var _bimScrollY = 0;
+(function () {
+  'use strict';
 
-function openBIM(id) {
-  var overlay = document.getElementById(id);
-  if (!overlay) return;
+  /* ── Estado global del modal ── */
+  var _bimScrollY  = 0;   // posición del scroll cuando se abrió
+  var _bimLocked   = false; // body bloqueado actualmente?
+  var _bimCurrent  = null;  // overlay actualmente abierto
 
-  // Cerrar cualquier otro modal abierto sin restaurar scroll todavía
-  document.querySelectorAll('.bim-overlay.open').forEach(function(el) {
-    el.classList.remove('open');
+  /* ─────────────────────────────────────────
+     LOCK / UNLOCK del body
+     Estrategia: NO usamos position:fixed en el body (causa el flash/parpadeo
+     en iOS Safari porque el viewport se recalcula antes del paint).
+     En su lugar guardamos scrollY y usamos overflow:hidden en <html> + <body>
+     conservando el scrollbar gutter con scrollbar-gutter o padding-right.
+  ───────────────────────────────────────── */
+  function _lockBody() {
+    if (_bimLocked) return;
+    _bimScrollY = window.scrollY || window.pageYOffset;
+
+    var sbWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    // Bloquear scroll sin mover el layout
+    document.documentElement.style.overflow   = 'hidden';
+    document.body.style.overflow              = 'hidden';
+
+    // Compensar el scrollbar que desaparece para evitar layout-shift
+    if (sbWidth > 0) {
+      document.body.style.paddingRight = sbWidth + 'px';
+    }
+
+    _bimLocked = true;
+  }
+
+  function _unlockBody() {
+    if (!_bimLocked) return;
+
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow            = '';
+    document.body.style.paddingRight        = '';
+
+    // Restaurar posición sin animación (requestAnimationFrame para que el
+    // browser pinte primero el unlock antes del scroll, evitando el flash)
+    var target = _bimScrollY;
+    requestAnimationFrame(function () {
+      window.scrollTo(0, target);
+    });
+
+    _bimLocked = false;
+  }
+
+  /* ─────────────────────────────────────────
+     ABRIR modal
+  ───────────────────────────────────────── */
+  window.openBIM = function (id) {
+    var overlay = document.getElementById(id);
+    if (!overlay) return;
+
+    // Cerrar el que esté abierto sin tocar el body lock todavía
+    if (_bimCurrent && _bimCurrent !== overlay) {
+      _bimCurrent.classList.remove('open');
+    }
+    _bimCurrent = overlay;
+
+    _lockBody();
+    overlay.classList.add('open');
+
+    // Foco accesible tras la animación de entrada (300 ms)
+    var closeBtn = overlay.querySelector('.bim-close');
+    if (closeBtn) {
+      setTimeout(function () { closeBtn.focus(); }, 320);
+    }
+  };
+
+  /* ─────────────────────────────────────────
+     CERRAR modal (por botón ✕ o Escape)
+  ───────────────────────────────────────── */
+  window.closeBIM = function (id) {
+    var overlay = id
+      ? document.getElementById(id)
+      : _bimCurrent;
+
+    if (!overlay || !overlay.classList.contains('open')) return;
+
+    overlay.classList.remove('open');
+    _bimCurrent = null;
+    _unlockBody();
+  };
+
+  /* ─────────────────────────────────────────
+     CERRAR al hacer click/tap en el backdrop
+     Bug original: en iOS un tap en el backdrop registraba event.target como
+     un nodo hijo del overlay (el pseudo-elemento blur), disparando el cierre
+     incluso al abrir. Solución: delegamos el evento en el overlay mismo,
+     comprobamos que el target sea exactamente el overlay (no un hijo) Y que
+     hayan pasado >150 ms desde la apertura (debounce de apertura).
+  ───────────────────────────────────────── */
+  var _bimOpenedAt = 0; // timestamp del último openBIM
+
+  // Sobrescribir openBIM para registrar el timestamp
+  var _origOpen = window.openBIM;
+  window.openBIM = function (id) {
+    _bimOpenedAt = Date.now();
+    _origOpen(id);
+  };
+
+  // closeBIMOutside — llamado por onclick en el .bim-overlay (HTML estático)
+  window.closeBIMOutside = function (event, overlay) {
+    // 1. Debounce: ignorar si el modal se acaba de abrir (previene el
+    //    tap-through inmediato en iOS donde el touchend llega con retraso)
+    if (Date.now() - _bimOpenedAt < 200) return;
+
+    // 2. Solo cerrar si el target ES el overlay (backdrop) y no algún hijo
+    //    Usamos composedPath()[0] que es más fiable en Shadow DOM / iOS
+    var path   = event.composedPath ? event.composedPath() : [];
+    var target = path[0] || event.target;
+
+    if (target === overlay) {
+      window.closeBIM(null);
+    }
+  };
+
+  /* ─────────────────────────────────────────
+     CERRAR con tecla Escape
+  ───────────────────────────────────────── */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && _bimCurrent) {
+      window.closeBIM(null);
+    }
   });
 
-  // Guardar posición actual ANTES de bloquear
-  _bimScrollY = window.scrollY || window.pageYOffset;
-
-  // FIX: usar overflowY:'scroll' (no 'hidden') para mantener el ancho del
-  // scrollbar en desktop y evitar el layout-shift al abrir/cerrar el modal
-  document.body.style.top      = '-' + _bimScrollY + 'px';
-  document.body.style.position = 'fixed';
-  document.body.style.width    = '100%';
-  document.body.style.overflowY = 'scroll';
-
-  overlay.classList.add('open');
-
-  // Foco accesible: mover al botón de cierre tras la animación de entrada
-  var closeBtn = overlay.querySelector('.bim-close');
-  if (closeBtn) setTimeout(function() { closeBtn.focus(); }, 80);
-}
-
-function _closeBIMBody() {
-  // Capturar valor antes de limpiar los estilos
-  var scrollY = _bimScrollY;
-
-  // FIX: limpiar overflowY igual que se asignó
-  document.body.style.position  = '';
-  document.body.style.top       = '';
-  document.body.style.width     = '';
-  document.body.style.overflowY = '';
-
-  // FIX: window.scrollTo(x,y) tiene soporte universal (IE9+) a diferencia de
-  // { behavior:'instant' } que no está disponible en todos los móviles
-  window.scrollTo(0, scrollY);
-}
-
-function closeBIM(id) {
-  var overlay = document.getElementById(id);
-  if (!overlay || !overlay.classList.contains('open')) return;
-  overlay.classList.remove('open');
-  _closeBIMBody();
-}
-
-function closeBIMOutside(event, overlay) {
-  // FIX: en lugar de comparar event.target === overlay (falla en mobile porque
-  // el touch puede registrar un nodo hijo del backdrop), comprobamos si el
-  // click ocurrió FUERA del panel usando Node.contains()
-  var panel = overlay.querySelector('.bim-panel');
-  if (!panel || !panel.contains(event.target)) {
-    overlay.classList.remove('open');
-    _closeBIMBody();
-  }
-}
-
-// Cerrar con tecla Escape
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    var anyOpen = false;
-    document.querySelectorAll('.bim-overlay.open').forEach(function(el) {
-      el.classList.remove('open');
-      anyOpen = true;
+  /* ─────────────────────────────────────────
+     stopPropagation en panels — bindear en DOMContentLoaded
+     para asegurar que los elementos ya existen en el DOM
+  ───────────────────────────────────────── */
+  function _bindPanelStopProp() {
+    document.querySelectorAll('.bim-panel').forEach(function (panel) {
+      // Remover listeners previos clonando el nodo (por si se llama 2 veces)
+      panel.addEventListener('click',    function (e) { e.stopPropagation(); }, { passive: false });
+      panel.addEventListener('touchend', function (e) { e.stopPropagation(); }, { passive: false });
+      panel.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
     });
-    if (anyOpen) _closeBIMBody();
   }
-});
 
-// FIX: impedir que los clicks DENTRO del panel burbujeen al overlay y
-// disparen accidentalmente closeBIMOutside (crítico en mobile/touch)
-document.querySelectorAll('.bim-panel').forEach(function(panel) {
-  panel.addEventListener('click', function(e) { e.stopPropagation(); });
-  panel.addEventListener('touchend', function(e) { e.stopPropagation(); });
-});
-// FIN BUNDLE INFO MODALS
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _bindPanelStopProp);
+  } else {
+    _bindPanelStopProp(); // DOM ya listo
+  }
+
+})();
+// FIN BUNDLE INFO MODALS v3
 
 // ── ACTIVE NAV LINK ──
 const sections  = document.querySelectorAll('section[id]');

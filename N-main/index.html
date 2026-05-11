@@ -238,6 +238,8 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
   position:absolute;inset:0;
   background-image:linear-gradient(var(--border-default) 1px,transparent 1px),linear-gradient(90deg,var(--border-default) 1px,transparent 1px);
   background-size:56px 56px;
+  /* FIX iOS Safari: always include -webkit- prefix */
+  -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 20%,transparent 100%);
   mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 20%,transparent 100%);
   opacity:.5
 }
@@ -863,10 +865,10 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .showcase-shell{margin-top:2.5rem}
 .showcase-video{
   position:relative;overflow:hidden;border-radius:24px;
-  /* altura dinámica: crece con el contenido interno (el dashboard) */
+  /* FIX iOS/Android: use height + min-height so child height:100% resolves correctly */
+  height:480px;
   min-height:480px;
   border:1px solid var(--border-default);box-shadow:var(--shadow-lg);background:#050508;
-  /* Asegura que el #interactive-dashboard hijo pueda usar height:100% */
   display:flex;flex-direction:column;
 }
 /* El dashboard interactivo ocupa todo el espacio del recuadro */
@@ -894,7 +896,11 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 @media(max-width:768px){
   .showcase-video,
   .showcase-video > #interactive-dashboard,
-  .showcase-video > .interactive-dash-section{min-height:340px}
+  .showcase-video > .interactive-dash-section{
+    /* FIX: explicit height so height:100% resolves in nested flex children */
+    height:340px;
+    min-height:340px;
+  }
   .showcase-video__card{max-width:none}
 }
 
@@ -1772,48 +1778,43 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
         const canvas = document.getElementById('hero-node-canvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        /* ── Dimensiones lógicas (CSS px) del área visible ── */
+
+        // FIX iOS: disable touch-action so canvas doesn't block scroll
+        canvas.style.touchAction = 'none';
+        canvas.setAttribute('aria-hidden', 'true');
+
         let W = 0, H = 0;
         let nodes = [];
         let animId;
 
-        /* ── Referencia al section #hero, no al padre inmediato ──
-           Así capturamos el tamaño real del recuadro completo,
-           independientemente de si hero-deco todavía no tiene altura. */
         const heroSection = document.getElementById('hero') || canvas.closest('section') || canvas.parentElement;
 
-        /* ── DPR: resuelve el blur en pantallas Retina/HiDPI ── */
         function getDpr() {
-            return Math.min(window.devicePixelRatio || 1, 2); // cap en 2x para rendimiento
+            return Math.min(window.devicePixelRatio || 1, 2);
         }
 
         function resize() {
-            const dpr  = getDpr();
-            /* offsetWidth/Height sobre el section es siempre correcto
-               porque el section tiene min-height:100svh y display:flex */
-            W = heroSection.offsetWidth;
+            const dpr = getDpr();
+            // FIX iOS: offsetWidth/Height can be 0 when DOMContentLoaded fires
+            // before the browser applies 100svh. Use window.inner* as fallback.
+            W = heroSection.offsetWidth  || window.innerWidth;
             H = heroSection.offsetHeight;
+            if (!H || H < 50) H = window.innerHeight;
 
-            /* Tamaño interno del buffer (físico) */
             canvas.width  = Math.round(W * dpr);
             canvas.height = Math.round(H * dpr);
 
-            /* El CSS ya pone width:100%; height:100% en el canvas,
-               pero lo forzamos también inline por si acaso */
             canvas.style.width  = W + 'px';
             canvas.style.height = H + 'px';
 
-            /* Escalar el contexto para que 1 unidad = 1 CSS px */
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-            /* Reclamp nodos existentes para que no queden fuera del recuadro */
             nodes.forEach(function(n) {
                 n.x = Math.min(Math.max(n.x, 0), W);
                 n.y = Math.min(Math.max(n.y, 0), H);
             });
         }
 
-        /* ── Clase Node (coordenadas siempre en CSS px) ── */
         function Node() {
             this.x      = Math.random() * W;
             this.y      = Math.random() * H;
@@ -1834,12 +1835,6 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
             ctx.fill();
         };
 
-        /* ── Init resize + crear nodos ── */
-        resize();
-        var numNodes = W > 768 ? 65 : 30;
-        for (var i = 0; i < numNodes; i++) { nodes.push(new Node()); }
-
-        /* ── Loop de animación ── */
         function animate() {
             animId = requestAnimationFrame(animate);
             ctx.clearRect(0, 0, W, H);
@@ -1861,15 +1856,28 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
                 }
             }
         }
-        animate();
 
-        /* ── ResizeObserver: captura cambios de tamaño del section
-           incluyendo rotación de pantalla, zoom del browser, etc. ── */
+        // FIX iOS/Android: wait two animation frames so the browser has painted
+        // the 100svh hero section before we read its dimensions.
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                resize();
+                var numNodes = W > 768 ? 65 : 30;
+                for (var i = 0; i < numNodes; i++) { nodes.push(new Node()); }
+                animate();
+            });
+        });
+
         if (typeof ResizeObserver !== 'undefined') {
             new ResizeObserver(function() { resize(); }).observe(heroSection);
         } else {
             window.addEventListener('resize', resize);
         }
+
+        // Extra safety: re-read dimensions after fonts/images have loaded
+        window.addEventListener('load', function() {
+            resize();
+        });
     });
    </script>
   <div class="container" style="position:relative;z-index:1">
@@ -1928,6 +1936,8 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .anim-radar {
     position: absolute; top: 50%; left: 50%;
     width: 200vw; height: 200vw;
+    /* FIX Android <88: conic-gradient not supported, show subtle teal ring instead */
+    background: rgba(0,255,204,0.08);
     background: conic-gradient(from 0deg, transparent 60%, rgba(0, 255, 204, 0.3) 100%);
     border-radius: 50%;
     transform: translate(-50%, -50%);
@@ -3761,6 +3771,10 @@ document.addEventListener("DOMContentLoaded", function() {
     var dragOffsetX = 0;
     var dragOffsetY = 0;
 
+    // FIX iOS touch: disable default touch behaviors on the interactive view
+    // so pinch-zoom and drag don't conflict with the tablet parallax
+    mainView.style.touchAction = 'none';
+
     function applyTransform() {
         tablet.style.transform =
             'scale(' + baseScale + ') ' +
@@ -3771,8 +3785,11 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function fitTablet() {
+        // FIX iOS: offsetWidth/Height can be 0 if showcaseBox hasn't painted yet
         var boxW = showcaseBox.offsetWidth  || mainView.offsetWidth  || 800;
         var boxH = showcaseBox.offsetHeight || mainView.offsetHeight || 420;
+        // Extra safety: never use a boxH smaller than 100px
+        if (boxH < 100) boxH = 340;
         var scaleX = (boxW - PADDING * 2) / TABLET_W;
         var scaleY = (boxH - PADDING * 2) / TABLET_H;
         baseScale   = Math.min(scaleX, scaleY, 1); /* cap a 1 — no ampliar más del 100% */
@@ -3781,7 +3798,13 @@ document.addEventListener("DOMContentLoaded", function() {
         applyTransform();
     }
 
-    fitTablet();
+    // FIX iOS/Android: wait two animation frames before reading dimensions
+    // so the browser has applied CSS (height: 340px / 480px) to showcaseBox.
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            fitTablet();
+        });
+    });
 
     /* ResizeObserver sobre showcaseBox para reaccionar a cualquier cambio */
     if (typeof ResizeObserver !== 'undefined') {
@@ -3854,6 +3877,31 @@ document.addEventListener("DOMContentLoaded", function() {
     mainView.addEventListener('mouseenter', function() {
         tablet.style.transition = 'transform 0.1s ease-out';
     });
+
+    /* FIX Android/iOS: touch parallax — single-finger drag */
+    var touchStartX = 0, touchStartY = 0;
+    mainView.addEventListener('touchstart', function(e) {
+        if (e.touches.length !== 1) return;
+        touchStartX = e.touches[0].clientX - dragOffsetX;
+        touchStartY = e.touches[0].clientY - dragOffsetY;
+        tablet.style.transition = 'none';
+    }, { passive: true });
+
+    mainView.addEventListener('touchmove', function(e) {
+        if (e.touches.length !== 1) return;
+        dragOffsetX = e.touches[0].clientX - touchStartX;
+        dragOffsetY = e.touches[0].clientY - touchStartY;
+        applyTransform();
+    }, { passive: true });
+
+    mainView.addEventListener('touchend', function() {
+        tablet.style.transition = 'transform 0.5s cubic-bezier(0.2,0.8,0.2,1)';
+        dragOffsetX = 0;
+        dragOffsetY = 0;
+        parallaxRX  = 0;
+        parallaxRY  = 0;
+        applyTransform();
+    }, { passive: true });
 });
 </script>
       </div>

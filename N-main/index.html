@@ -865,16 +865,22 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .showcase-shell{margin-top:2.5rem}
 .showcase-video{
   position:relative;overflow:hidden;border-radius:24px;
-  /* FIX iOS/Android: use height + min-height so child height:100% resolves correctly */
-  height:480px;
-  min-height:480px;
+  /* Usa aspect-ratio 17/11 (= 850÷550) en TODOS los breakpoints para que
+     la animación llene el recuadro sin espacio muerto arriba/abajo */
+  width:100%;
+  height:auto;
+  aspect-ratio:17 / 11;
+  min-height:0;
   border:1px solid var(--border-default);box-shadow:var(--shadow-lg);background:#050508;
   display:flex;flex-direction:column;
 }
 /* El dashboard interactivo ocupa todo el espacio del recuadro */
 .showcase-video > #interactive-dashboard,
 .showcase-video > .interactive-dash-section {
-  flex:1;min-height:480px;
+  flex:1;
+  width:100%;
+  height:100%;
+  min-height:0;
 }
 .showcase-video__media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .showcase-video__overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(15,23,42,.38))}
@@ -894,13 +900,6 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
 .showcase-video__card h3{margin:0 0 .5rem;font-size:1.3rem;line-height:1.15;color:var(--text-primary)}
 .showcase-video__card p{margin:0;color:var(--text-secondary);line-height:1.65;font-size:.96rem}
 @media(max-width:768px){
-  .showcase-video,
-  .showcase-video > #interactive-dashboard,
-  .showcase-video > .interactive-dash-section{
-    /* FIX: explicit height so height:100% resolves in nested flex children */
-    height:340px;
-    min-height:340px;
-  }
   .showcase-video__card{max-width:none}
 }
 
@@ -3734,8 +3733,10 @@ document.addEventListener("DOMContentLoaded", function() {
     /* ── Constantes de diseño (no cambiar) ── */
     var TABLET_W = 850;
     var TABLET_H = 550;
-    /* Padding interno del recuadro para que la tableta no toque los bordes */
-    var PADDING  = 40;
+    /* PADDING = 0 en todos los breakpoints: el contenedor usa aspect-ratio 17/11
+       (= 850÷550), por lo que scaleX === scaleY y la animación llena el recuadro
+       de borde a borde sin espacio muerto en ningún dispositivo. */
+    var PADDING  = 0;
 
     var imagesList = [
         { src: '../img1.png', title: 'Dashboard Principal' },
@@ -3790,9 +3791,15 @@ document.addEventListener("DOMContentLoaded", function() {
         var boxH = showcaseBox.offsetHeight || mainView.offsetHeight || 420;
         // Extra safety: never use a boxH smaller than 100px
         if (boxH < 100) boxH = 340;
+        /* El contenedor usa aspect-ratio 17/11 (= TABLET_W÷TABLET_H) en todos los
+           breakpoints → scaleX siempre === scaleY. PADDING = 0 garantiza que la
+           animación llena el recuadro de borde a borde sin espacio muerto, tanto en
+           mobile como en tableta y desktop.
+           Se elimina el cap a 1 para permitir que la tableta se amplíe cuando el
+           recuadro es mayor que las dimensiones de diseño base (850×550). */
         var scaleX = (boxW - PADDING * 2) / TABLET_W;
         var scaleY = (boxH - PADDING * 2) / TABLET_H;
-        baseScale   = Math.min(scaleX, scaleY, 1); /* cap a 1 — no ampliar más del 100% */
+        baseScale   = Math.min(scaleX, scaleY);   /* sin cap: llena siempre el recuadro */
         dragOffsetX = 0;
         dragOffsetY = 0;
         applyTransform();

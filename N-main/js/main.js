@@ -220,6 +220,6 @@ function _closeBIMBody() {
   document.body.style.top = '';
   document.body.style.width = '';
   document.body.style.overflow = '';
-  window.scrollTo({ top: _bimScrollY, behavior: 'instant' };
+  window.scrollTo({ top: _bimScrollY, behavior: 'instant' });
   
 })();

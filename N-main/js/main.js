@@ -212,5 +212,14 @@
     [base, desc, ivaOn].forEach(el=> el && el.addEventListener('input', calc));
     calc();
   });
-
+// Variable global para guardar la posición del scroll
+var _bimScrollY = 0;
+  // Función helper que restaura el body exactamente donde estaba
+function _closeBIMBody() {
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  document.body.style.overflow = '';
+  window.scrollTo({ top: _bimScrollY, behavior: 'instant' };
+  
 })();

@@ -5283,11 +5283,20 @@ function nodKeydown(e) {
 
     // Restaurar posición sin animación (requestAnimationFrame para que el
     // browser pinte primero el unlock antes del scroll, evitando el flash)
+    // FIX: desactivar scroll-behavior:smooth ANTES de restaurar la posición
+  // para que scrollTo sea instantáneo y no anime visualmente hacia arriba.
+  document.documentElement.style.scrollBehavior = 'auto';
+
     var target = _bimScrollY;
     requestAnimationFrame(function () {
       window.scrollTo(0, target);
+    
+    // Reactivar scroll suave en el siguiente frame (después del salto)
+    requestAnimationFrame(function () {
+      document.documentElement.style.scrollBehavior = '';
     });
-
+  });
+    
     _bimLocked = false;
   }
 

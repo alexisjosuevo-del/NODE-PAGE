@@ -18,6 +18,127 @@
 html{scroll-behavior:smooth}
 body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'Noto Sans','Helvetica Neue',sans-serif;background:#FFFFFF;color:#1E2D40;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
+
+.marquee-label{
+      font-family:'Space Grotesk',sans-serif;
+      font-weight:600;font-size:.75rem;text-transform:uppercase;
+      letter-spacing:.1em;color:var(--text-tertiary);
+      text-align:center;margin-bottom:2rem
+    }
+ 
+    /* Wrapper con fade lateral */
+    .marquee-wrapper{position:relative;overflow:hidden}
+    .marquee-wrapper::before,
+    .marquee-wrapper::after{
+      content:'';position:absolute;top:0;bottom:0;width:100px;z-index:2;pointer-events:none
+    }
+    .marquee-wrapper::before{left:0;background:linear-gradient(to right,var(--surface-page),transparent)}
+    .marquee-wrapper::after{right:0;background:linear-gradient(to left,var(--surface-page),transparent)}
+ 
+    /* Track animado */
+    .marquee-track{
+      display:flex;gap:0;width:max-content;
+      animation:marquee-fwd 30s linear infinite
+    }
+    .marquee-track--rev{animation:marquee-rev 35s linear infinite}
+ 
+    /* Pausa en hover */
+    .marquee-wrapper:hover .marquee-track,
+    .marquee-wrapper:hover .marquee-track--rev{animation-play-state:paused}
+ 
+    @keyframes marquee-fwd{
+      0%{transform:translateX(0)}
+      100%{transform:translateX(-50%)}
+    }
+    @keyframes marquee-rev{
+      0%{transform:translateX(-50%)}
+      100%{transform:translateX(0)}
+    }
+ 
+    .marquee-row + .marquee-row{margin-top:12px}
+ 
+    /* Card de logo — hereda el look de .feat-card */
+    .logo-card{
+      display:flex;align-items:center;justify-content:center;
+      width:176px;height:72px;
+      margin:0 10px;flex-shrink:0;
+      background:var(--surface-page);
+      border:1px solid var(--border-default);
+      border-radius:var(--radius-md);
+      box-shadow:var(--shadow-xs);
+      padding:12px 20px;
+      transition:
+        border-color var(--dur-base) var(--ease-base),
+        box-shadow var(--dur-slow) var(--ease-base),
+        transform var(--dur-slow) var(--ease-spring)
+    }
+    .logo-card:hover{
+      border-color:var(--border-accent);
+      box-shadow:var(--shadow-accent);
+      transform:translateY(-2px)
+    }
+    .logo-card img{
+      max-width:100%;max-height:42px;object-fit:contain;
+      filter:grayscale(100%) opacity(.5);
+      transition:filter var(--dur-base) var(--ease-base)
+    }
+    .logo-card:hover img{filter:grayscale(0%) opacity(1)}
+ 
+    /* Placeholder tipográfico — Space Grotesk igual que .feat-title */
+    .logo-placeholder{
+      font-family:'Space Grotesk',sans-serif;
+      font-size:11px;font-weight:700;
+      letter-spacing:.06em;text-transform:uppercase;
+      color:var(--neutral-400);user-select:none;text-align:center;line-height:1.3
+    }
+ 
+    /* ══════════════════════════════════════════
+       STATS ROW — misma clase .stat-num / .stat-label
+       que tu sección #stats del index
+    ══════════════════════════════════════════ */
+    .clients-stats{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      background:var(--neutral-50);
+      border-top:1px solid var(--border-default);
+      border-bottom:1px solid var(--border-default);
+      margin-top:4rem
+    }
+    @media(min-width:640px){.clients-stats{grid-template-columns:repeat(4,1fr)}}
+ 
+    /* Reutiliza .stat-item, .stat-num, .stat-label de tu index */
+    .stat-item{
+      padding:1.75rem 1.25rem;text-align:center;
+      border-right:1px solid var(--border-default);
+      transition:background var(--dur-base);position:relative;overflow:hidden
+    }
+    .stat-item:last-child{border-right:none}
+    .stat-item:hover{background:var(--surface-page)}
+    .stat-num{
+      font-family:'Space Grotesk',sans-serif;font-weight:700;
+      font-size:clamp(1.625rem,3vw,2.25rem);color:var(--indigo);
+      line-height:1;margin-bottom:.3rem
+    }
+    .stat-label{color:var(--text-tertiary);font-size:.8rem;font-weight:500;line-height:1.45}
+    .stat-bar{
+      position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+      width:0;height:2px;background:var(--gradient-text-hero);
+      transition:width var(--dur-slow) var(--ease-base)
+    }
+    .stat-item:hover .stat-bar{width:100%}
+    @media(max-width:639px){
+      .stat-item:nth-child(2){border-right:none}
+      .stat-item:nth-child(3),.stat-item:nth-child(4){border-top:1px solid var(--border-default)}
+    }
+ 
+    /* reduced motion */
+    @media(prefers-reduced-motion:reduce){
+      .marquee-track,.marquee-track--rev{
+        animation:none;display:grid;
+        grid-template-columns:repeat(4,1fr);width:100%
+      }
+      .logo-card{margin:8px}
+    }
 /* ══════════════════════════════════════════
    DESIGN TOKENS — v2.0 LIGHT-FIRST
 ══════════════════════════════════════════ */
@@ -2187,7 +2308,22 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,'No
         </div>
       </div>
     </div>
-    
+
+    <div class="container">
+        <!-- Fila 1 → izquierda -->
+      <div class="marquee-wrapper marquee-row" aria-hidden="true">
+        <div class="marquee-track">
+        </div>
+      </div>
+      <div class="marquee-wrapper marquee-row" aria-hidden="true">
+        <div class="marquee-track marquee-track--rev">
+        </div>
+      </div>
+    </div><!-- /reveal marquee -->
+ 
+  </div><!-- /.container -->
+ 
+
     <!-- ── VALORES ── -->
     <hr class="ns-divider">
     <div class="ns-sub-header reveal">
@@ -3997,10 +4133,9 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="footer-col-ttl">Productos</div>
         <ul class="footer-links">
           <li><a href="javascript:void(0)" onclick="scrollToTab('ind')">— Ver Presencia digital</a></li>
-          <li><a href="javascript:void(0)" onclick="scrollToTab('pre')">— Ver Operación y ventas</a></li>
-          <li><a href="javascript:void(0)" onclick="scrollToTab('pre','cfdi')">— Facturador CFDI</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToTab('pre')">— Ver Operación y ventas</a></li> 
           <li><a href="javascript:void(0)" onclick="scrollToTab('adv')">— Ver Avanzados</a></li>
-          <li><a href="javascript:void(0)" onclick="scrollToTab('bun')">— Ver soluciones con ahorro</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToTab('bun')">— Ver soluciones</a></li>
           <li><a href="javascript:void(0)" onclick="scrollToTab('rec')">— Recurrentes</a></li>
         </ul>
       </div>
@@ -4016,7 +4151,7 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="footer-col-ttl">Contacto</div>
         <ul class="footer-links">
           <li><a href="https://wa.me/527751023249" target="_blank" rel="noopener">WhatsApp Business</a></li>
-          <li><a href="/cdn-cgi/l/email-protection#046c6b6865446a6b60612a697c"><span class="__cf_email__" data-cfemail="1f7770737e5f71707b7a317267">[email&#160;protected]</span></a></li>
+        <li><a href="https://mail.google.com/mail/?view=cm&to=hola@node.mx" target="_blank" rel="noopener">hola@node.mx </a></li>
           <li><a href="https://linkedin.com" target="_blank" rel="noopener">LinkedIn</a></li>
           <li><a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a></li>
         </ul>
@@ -4825,7 +4960,7 @@ function nodRespond(text) {
   // ── P15 DASHBOARD EJECUTIVO ──
   if (has(t, ['dashboard ejecutivo','dashboard en tiempo real','metricas en tiempo real','métricas en tiempo real','kpis en tiempo real','alertas de metricas','alertas de métricas','tiempo real'])) {
     return {
-      msg: '📈  — NODE Dashboard Ejecutivo  · 12-16 días \n\n✅ Hasta 15 KPIs con umbrales alerta (verde/amarillo/rojo)\n✅ Hasta 5 fuentes de datos · actualización cada 15 min\n✅ Alertas por email y WhatsApp al cruzar umbrales\n✅ Vistas por rol: Dirección / Operaciones / Ventas\n✅ Drill-down + historial 90 días + exportación PDF/Excel',
+      msg: '📈  — NODE Dashboard Ejecutivo  · 12-16 días \n\n✅ Hasta 15 KPIs con umbrales alerta (verde/amarillo/rojo)\n✅ Hasta 5 fuentes de datos · actualización cada 15 min\n✅ Alertas por [email protected]y WhatsApp al cruzar umbrales\n✅ Vistas por rol: Dirección / Operaciones / Ventas\n✅ Drill-down + historial 90 días + exportación PDF/Excel',
       opts: ['Quiero éste', 'Ver Solución DIGITAL 360', 'Agendar diagnóstico gratis']
     };
   }

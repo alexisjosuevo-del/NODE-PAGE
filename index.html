@@ -1,20 +1,332 @@
-<!DOCTYPE html>
-<html lang="es">
+<!doctype html>
+<html lang="es-MX">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redirigiendo a NODE</title>
-  <meta http-equiv="refresh" content="0; url=N-main/index.html">
-  <link rel="canonical" href="N-main/index.html">
-  <script>
-    window.location.replace("N-main/index.html");
-  </script>
-  <style>
-    body{font-family:Arial,sans-serif;background:#fff;color:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
-    a{color:#111;font-weight:700}
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NODE diagnostica cuellos de botella operativos y despliega arquitectura con IA mediante un equipo senior, en ciclos de 21 días.">
+  <meta name="theme-color" content="#08090D">
+  <meta property="og:title" content="NODE | Ingeniería y negocio acelerados por IA">
+  <meta property="og:description" content="Arquitectura funcionando para operaciones B2B que necesitan adoptar IA con rigor, velocidad y control.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nodeq.com.mx/">
+  <link rel="canonical" href="https://nodeq.com.mx/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <title>NODE | Ingeniería y negocio acelerados por IA</title>
 </head>
 <body>
-  <p>Abriendo NODE... <a href="N-main/index.html">Haz clic aquí si no abre automáticamente</a>.</p>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <!-- ===== INICIO: PRESENTACION NODE ===== -->
+  <section class="intro" data-intro role="dialog" aria-modal="true" aria-label="Presentación de NODE" hidden>
+    <canvas class="intro-canvas" data-intro-canvas aria-hidden="true"></canvas>
+    <button class="intro-skip" type="button" data-intro-skip>Omitir</button>
+    <span class="intro-progress" data-intro-progress aria-hidden="true">CONECTAR</span>
+  </section>
+  <!-- ===== FIN: PRESENTACION NODE ===== -->
+
+  <!-- ===== INICIO: NAVEGACION NODE (2026-08-16) ===== -->
+  <header class="site-header" data-header>
+    <div class="container nav-wrap">
+      <a class="brand" href="#inicio" aria-label="NODE, inicio">
+        <img src="assets/node-logo-horizontal.png" alt="NODE" width="4841" height="2274">
+      </a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>
+        <span></span><span></span><span></span><span class="sr-only">Abrir menú</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Navegación principal" data-nav>
+        <a href="#enfoque">Nosotros</a>
+        <a href="#proceso">Proceso</a>
+        <a href="#capacidades">Capacidades</a>
+        <a href="#diferencia">Equipo</a>
+        <a class="button button-small" href="#diagnostico">Solicitar diagnóstico</a>
+      </nav>
+    </div>
+  </header>
+  <!-- ===== FIN: NAVEGACION NODE ===== -->
+
+  <main id="contenido">
+    <!-- ===== INICIO: HERO ESTRATEGICO (2026-08-21) ===== -->
+    <section class="hero" id="inicio">
+      <canvas class="hero-bg-canvas" data-tech-canvas="hero" aria-hidden="true"></canvas>
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="container hero-layout">
+        <div class="hero-copy reveal">
+          <h1>Desarrollamos sistemas para <em><span class="rotating-word" data-rotating-word aria-live="polite">escalar tus proyectos</span>.</em></h1>
+          <p class="hero-lead">Combinamos estrategia, inteligencia artificial, automatización y software para resolver problemas reales y crear nuevas capacidades dentro de tu empresa.</p>
+          <div class="hero-actions">
+            <a class="button" href="#diagnostico">Solicitar diagnóstico <span aria-hidden="true">↗</span></a>
+            <a class="text-link" href="#proceso">Descubre cómo trabajamos <span aria-hidden="true">↓</span></a>
+          </div>
+          <dl class="hero-facts" aria-label="Principios del servicio">
+            <div><dt>Especialistas + agentes AI</dt></div>
+            <div><dt>De estrategia a producción</dt></div>
+            <div><dt>Evolución continua</dt></div>
+          </dl>
+          <a class="intro-replay" href="?intro=1">↻ Repetir presentación</a>
+        </div>
+
+      </div>
+    </section>
+    <!-- ===== FIN: HERO ESTRATEGICO ===== -->
+
+    <!-- ===== INICIO: CONTENIDO DE POSICIONAMIENTO (2026-08-21) ===== -->
+    <section class="section problem" id="enfoque">
+      <div class="container split-heading reveal">
+        <div>
+          <p class="section-index">SOBRE NOSOTROS</p>
+          <h2>Crecer rápido exige sistemas capaces de crecer contigo.</h2>
+          <p>Cuando los procesos, datos y herramientas empiezan a quedarse atrás, la operación se convierte en fricción. NODE diseña e implementa sistemas que conectan equipos, automatizan trabajo y crean capacidad para seguir escalando.</p>
+        </div>
+        <figure class="problem-visual tech-canvas-wrap" aria-hidden="true" data-label="NODE / NETWORK">
+          <canvas class="tech-canvas" data-tech-canvas="network" width="600" height="600"></canvas>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ===== INICIO: ESCENARIOS DE INICIO NODE (2026-08-21) ===== -->
+    <section class="section scenarios" aria-labelledby="scenarios-title">
+      <div class="container scenarios-layout">
+        <figure class="problem-visual scenarios-visual reveal tech-canvas-wrap" aria-hidden="true" data-label="NODE / RADAR">
+          <canvas class="tech-canvas" data-tech-canvas="code" width="600" height="600"></canvas>
+        </figure>
+        <div class="scenarios-content">
+          <h2 class="problem-kicker" id="scenarios-title">Iniciamos <span>node</span> cuando:</h2>
+          <div class="problem-grid reveal">
+            <article tabindex="0"><h3>Necesitas lanzar algo nuevo</h3><p>Construir una capacidad, producto o sistema desde cero.</p></article>
+            <article tabindex="0"><h3>Tu operación ya no escala</h3><p>Procesos manuales, herramientas desconectadas o demasiada dependencia de personas.</p></article>
+            <article tabindex="0"><h3>Debes transformar un proceso crítico</h3><p>Ventas, operaciones, administración, datos o atención.</p></article>
+            <article tabindex="0"><h3>Necesitas más capacidad</h3><p>Ampliar la operación sin hacer crecer el equipo al mismo ritmo.</p></article>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ===== FIN: ESCENARIOS DE INICIO NODE ===== -->
+
+    <section class="section process" id="proceso">
+      <div class="container process-layout">
+        <div class="section-heading reveal">
+          <p class="section-index">CÓMO TRABAJAMOS</p>
+          <h2>De un problema a una ventaja competitiva.</h2>
+          <p>Comenzamos por el cambio que necesita tu empresa; la tecnología acelera ese cambio.</p>
+        </div>
+        <ol class="process-list">
+          <li class="reveal" tabindex="0"><span>01</span><div><h3>Discover</h3></div><p>Entendemos el reto, el contexto operativo y el impacto esperado. Definimos qué vale la pena construir, automatizar o transformar.</p></li>
+          <li class="reveal" tabindex="0"><span>02</span><div><h3>Build</h3></div><p>Diseñamos e implementamos la solución combinando estrategia, software, automatización y agentes de IA según lo que realmente requiera el proyecto.</p></li>
+          <li class="reveal" tabindex="0"><span>03</span><div><h3>Evolve</h3></div><p>Medimos, mejoramos y expandimos el sistema conforme cambian la operación y las prioridades de tu empresa.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===== INICIO: CAPACIDADES (2026-08-22) ===== -->
+    <section class="section capabilities" id="capacidades">
+      <canvas class="cap-bg-canvas" data-tech-canvas="pcb" aria-hidden="true"></canvas>
+      <div class="container">
+        <div class="section-heading reveal">
+          <p class="section-index">CAPACIDADES</p>
+          <h2>Intervenciones definidas por el problema, no por un catálogo.</h2>
+        </div>
+        <div class="capability-grid reveal">
+          <article class="capability-card" tabindex="0">
+            <span class="line-icon" aria-hidden="true">▣</span>
+            <p class="section-index">NODE / CAPACIDAD </p>
+            <h3>Automatización comercial</h3>
+            <div class="capability-body">
+              <div class="capability-details">
+                <p>Flujos que reducen trabajo repetitivo entre prospección, cotización, seguimiento y cierre.</p>
+                <ul class="capability-list">
+                  <li>Orquestación de procesos</li>
+                  <li>Integración con sistemas existentes</li>
+                  <li>Trazabilidad comercial</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+          <article class="capability-card" tabindex="0">
+            <span class="line-icon" aria-hidden="true">▦</span>
+            <p class="section-index">NODE / CAPACIDAD </p>
+            <h3>Operaciones inteligentes</h3>
+            <div class="capability-body">
+              <div class="capability-details">
+                <p>Sistemas para detectar excepciones, consolidar información y acelerar decisiones operativas.</p>
+                <ul class="capability-list">
+                  <li>Consolidación de datos</li>
+                  <li>Alertas y reglas operativas</li>
+                  <li>Paneles de decisión</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+          <article class="capability-card" tabindex="0">
+            <span class="line-icon" aria-hidden="true">◇</span>
+            <p class="section-index">NODE / CAPACIDAD </p>
+            <h3>Arquitectura a la medida</h3>
+            <div class="capability-body">
+              <div class="capability-details">
+                <p>Intervenciones para restricciones de negocio que no caben en una solución genérica.</p>
+                <ul class="capability-list">
+                  <li>Diseño de solución</li>
+                  <li>Integración con legacy</li>
+                  <li>Documentación técnica</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+    <!-- ===== FIN: CAPACIDADES ===== -->
+
+    <section class="section difference" id="diferencia">
+      <div class="container difference-layout">
+        <div class="section-heading reveal">
+          <p class="section-index">Equipo Node</p>
+          <h2>Node es el punto que conecta capacidades, información y personas para que todo funcione.</h2>
+        </div>
+        <figure class="founders-visual reveal">
+          <img class="founders-base" src="assets/Founders 2.png" alt="Ilustración de los fundadores de NODE" loading="lazy" decoding="async">
+          <img class="founders-hover" src="assets/Founders.png" alt="" aria-hidden="true" loading="lazy" decoding="async">
+        </figure>
+      </div>
+    </section>
+
+    <!-- ===== FIN: CONTENIDO DE POSICIONAMIENTO ===== -->
+
+    <!-- ===== INICIO: FORMULARIO DIAGNOSTICO (2026-08-16) ===== -->
+    <section class="section diagnostic" id="diagnostico">
+      <div class="container diagnostic-layout">
+        <div class="diagnostic-copy reveal">
+          <h2>¿Qué necesita cambiar en tu empresa para escalar?</h2>
+          <p>Empezamos por entender tu proyecto, startup o negocio. Después definimos qué sistema, automatización o capacidad es ideal para conseguir tus objetivos.</p>
+          <a href="https://mail.google.com/mail/?view=cm&fs=1&to=hola@nodeq.com.mx" target="_blank" rel="noopener">hola@nodeq.com.mx</a>
+        </div>
+        <form class="diagnostic-form reveal" data-diagnostic-form novalidate>
+          <div class="field"><label for="nombre">Nombre</label><input id="nombre" name="nombre" autocomplete="name" required placeholder="Nombre y apellido"><small data-error-for="nombre"></small></div>
+          <div class="field"><label for="empresa">Empresa</label><input id="empresa" name="empresa" autocomplete="organization" required placeholder="Nombre de la empresa"><small data-error-for="empresa"></small></div>
+          <div class="field"><label for="correo">Correo corporativo</label><input id="correo" name="correo" type="email" autocomplete="email" required placeholder="nombre@empresa.com"><small data-error-for="correo"></small></div>
+          <div class="field"><label for="rol">Rol</label><select id="rol" name="rol" required><option value="">Seleccione una opción</option><option>CEO / Dirección General</option><option>COO / Operaciones</option><option>CTO / Tecnología</option><option>Otra dirección</option></select><small data-error-for="rol"></small></div>
+          <div class="field field-full"><label for="problema">¿Qué quieres resolver?</label><textarea id="problema" name="problema" rows="4" required minlength="20" placeholder="Describe el proceso, la capacidad o el cambio que necesita tu empresa."></textarea><small data-error-for="problema"></small></div>
+          <label class="consent field-full"><input type="checkbox" name="privacidad" required><span>Acepto que NODE use esta información para responder a mi solicitud.</span></label>
+          <button class="button field-full" type="submit">Solicitar diagnóstico <span aria-hidden="true">↗</span></button>
+          <p class="form-note field-full">Al continuar se abrirá un correo dirigido a hola@nodeq.com.mx con esta información.</p>
+          <p class="form-status field-full" role="status" aria-live="polite" data-form-status></p>
+        </form>
+      </div>
+    </section>
+    <!-- ===== FIN: FORMULARIO DIAGNOSTICO ===== -->
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-main">
+      <a class="brand" href="#inicio" aria-label="NODE, volver al inicio"><img src="assets/node-logo-horizontal.png" alt="NODE" width="4841" height="2274"></a>
+      <p>NODE diseña y construye sistemas de negocio combinando estrategia, software, automatización y agentes de IA.</p>
+      <div class="footer-contact">
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=hola@nodeq.com.mx" target="_blank" rel="noopener">hola@nodeq.com.mx</a>
+      </div>
+    </div>
+    <div class="container footer-bottom"><span>© <span data-year></span> NODE Soluciones Tecnológicas</span><span><button class="privacy-link" type="button" data-privacy-open>Privacidad y cookies</button> · nodeq.com.mx</span></div>
+  </footer>
+
+  <!-- ===== INICIO: WIDGET DE CHAT NODE (2026-08-22) ===== -->
+  <div class="chat-widget" data-chat-widget>
+    <section class="chat-panel" data-chat-panel role="dialog" aria-modal="false" aria-labelledby="chat-panel-title" hidden>
+      <header class="chat-panel-head">
+        <div>
+          <p class="section-index">NODE / ASISTENTE</p>
+          <h2 id="chat-panel-title">Resolvemos tus dudas</h2>
+        </div>
+        <button class="chat-close" type="button" data-chat-close aria-label="Cerrar chat">×</button>
+      </header>
+      <div class="chat-log" data-chat-log role="log" aria-live="polite">
+        <div class="chat-msg chat-msg--bot">
+          <p>Hola. Puedo orientarte sobre cómo trabaja NODE: capacidades, proceso, precio o cómo solicitar un diagnóstico. ¿Qué te gustaría saber?</p>
+        </div>
+      </div>
+      <div class="chat-suggestions" data-chat-suggestions aria-label="Sugerencias de NODE"></div>
+      <p class="chat-status" data-chat-status role="status" aria-live="polite" hidden></p>
+      <form class="chat-input" data-chat-form>
+        <label class="sr-only" for="chat-input-field">Escribe tu pregunta</label>
+        <input id="chat-input-field" type="text" placeholder="Escribe tu pregunta…" autocomplete="off" data-chat-input />
+        <button type="submit" aria-label="Enviar">↑</button>
+      </form>
+    </section>
+    <button class="chat-launcher" type="button" data-chat-toggle aria-haspopup="dialog" aria-expanded="false" aria-controls="chat-panel-title">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="19" stroke="currentColor" stroke-width="1.2" opacity=".5"/>
+        <path d="M12 16.5c0-2.5 2.2-4.5 5-4.5h6c2.8 0 5 2 5 4.5v4c0 2.5-2.2 4.5-5 4.5h-7l-4 3.2v-3.6c-1.2-.8-2-2.2-2-3.6v-4.4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+        <circle cx="16.5" cy="18.4" r="1" fill="currentColor"/>
+        <circle cx="20" cy="18.4" r="1" fill="currentColor"/>
+        <circle cx="23.5" cy="18.4" r="1" fill="currentColor"/>
+      </svg>
+      <span class="sr-only">Abrir asistente NODE</span>
+    </button>
+  </div>
+  <!-- ===== FIN: WIDGET DE CHAT NODE ===== -->
+
+  <!-- ===== INICIO: PRIVACIDAD Y COOKIES NODE ===== -->
+  <section class="privacy-consent" data-consent-bar aria-label="Aviso de privacidad y cookies" hidden>
+    <p>NODE utiliza almacenamiento local esencial para recordar esta decisión. No activamos cookies de analítica, publicidad ni rastreo de terceros.</p>
+    <div class="privacy-consent-actions">
+      <button class="privacy-link" type="button" data-privacy-open>Ver aviso</button>
+      <button class="privacy-accept" type="button" data-consent-accept>Entendido</button>
+    </div>
+  </section>
+
+  <div class="privacy-dialog" data-privacy-dialog role="dialog" aria-modal="true" aria-labelledby="privacy-title" hidden>
+    <div class="privacy-dialog-backdrop" data-privacy-close></div>
+    <section class="privacy-dialog-panel" tabindex="-1">
+      <div class="privacy-dialog-head">
+        <p class="section-index">NODE / INFORMACIÓN LEGAL</p>
+        <button class="privacy-close" type="button" data-privacy-close aria-label="Cerrar aviso de privacidad">×</button>
+      </div>
+      <h2 id="privacy-title">Privacidad y cookies</h2>
+      <div class="privacy-tabs" role="tablist" aria-label="Contenido legal">
+        <button id="privacy-tab-aviso" type="button" role="tab" aria-selected="true" aria-controls="privacy-panel-aviso" data-privacy-tab="aviso">Aviso de privacidad</button>
+        <button id="privacy-tab-cookies" type="button" role="tab" aria-selected="false" aria-controls="privacy-panel-cookies" data-privacy-tab="cookies">Cookies</button>
+      </div>
+      <div id="privacy-panel-aviso" role="tabpanel" aria-labelledby="privacy-tab-aviso" data-privacy-panel="aviso">
+        <p class="privacy-effective">Aviso de privacidad integral · Vigente a partir del 21 de abril de 2026</p>
+        <h3>1. Responsable y contacto</h3>
+        <p>Alianza Quimera para la Innovación S.A.S. de C.V. (“NODE” o “el Responsable”), con domicilio en Estado de México, México, es responsable del tratamiento de los datos personales conforme a la legislación mexicana aplicable.</p>
+        <p>Para asuntos relacionados con privacidad y protección de datos, escriba a <a href="https://mail.google.com/mail/?view=cm&fs=1&to=hola@nodeq.com.mx" target="_blank" rel="noopener">hola@nodeq.com.mx</a>.</p>
+        <h3>2. Datos personales que podemos recabar</h3>
+        <p>Según la relación que exista con NODE, podemos tratar datos de identificación y contacto: nombre, correo electrónico, teléfono, puesto, empresa u organización. En una relación comercial activa, podrían requerirse datos fiscales necesarios para contratos, cotizaciones o CFDI.</p>
+        <p>NODE no recaba datos personales sensibles como salud, biometría, religión, afiliación política, origen étnico u orientación sexual.</p>
+        <h3>3. Finalidades del tratamiento</h3>
+        <ul class="privacy-list"><li>Atender consultas, solicitudes de información, cotizaciones y contacto comercial.</li><li>Prestar servicios contratados y dar seguimiento a proyectos.</li><li>Gestionar contratos, cotizaciones, facturación y cumplimiento de obligaciones aplicables.</li><li>Enviar comunicaciones comerciales, encuestas o información de nuevos servicios, cuando exista consentimiento aplicable.</li></ul>
+        <p>Puede solicitar la oposición a finalidades secundarias escribiendo a <a href="https://mail.google.com/mail/?view=cm&fs=1&to=hola@nodeq.com.mx&su=Oposici%C3%B3n%20a%20finalidades%20secundarias" target="_blank" rel="noopener">hola@nodeq.com.mx</a>.</p>
+        <h3>4. Transferencias</h3>
+        <p>NODE puede compartir datos con proveedores o terceros necesarios para prestar un servicio o cumplir obligaciones legales. NODE no vende, renta ni cede datos personales para fines distintos a los descritos en este aviso.</p>
+        <p>Las consultas enviadas mediante el asistente se transmiten a la infraestructura de NODE para responderlas y pueden ser procesadas por proveedores de servicios de IA. El asistente usa sessionStorage del navegador para conservar la continuidad de la conversacion durante la sesion. No se exponen claves ni credenciales de proveedores en el navegador.</p>
+        <h3>5. Derechos ARCO</h3>
+        <p>Puede solicitar acceso, rectificación, cancelación u oposición al tratamiento de sus datos. Envíe su solicitud a <a href="https://mail.google.com/mail/?view=cm&fs=1&to=hola@nodeq.com.mx&su=Solicitud%20ARCO" target="_blank" rel="noopener">hola@nodeq.com.mx</a> con su nombre, el derecho que desea ejercer, una descripción clara y la información necesaria para identificar su solicitud.</p>
+        <h3>6. Medidas de seguridad</h3>
+        <p>NODE aplica medidas administrativas, técnicas y físicas razonables para proteger la información contra pérdida, uso indebido, acceso no autorizado, alteración o divulgación.</p>
+        <h3>7. Cambios al aviso</h3>
+        <p>Este aviso puede actualizarse para reflejar cambios operativos, legales o de seguridad. La versión vigente estará disponible en este sitio.</p>
+      </div>
+      <div id="privacy-panel-cookies" role="tabpanel" aria-labelledby="privacy-tab-cookies" data-privacy-panel="cookies" hidden>
+        <p class="privacy-effective">Política de cookies · Vigente a partir del 21 de abril de 2026</p>
+        <h3>¿Qué son las cookies?</h3>
+        <p>Son archivos o tecnologías similares que un sitio puede utilizar para recordar preferencias y mejorar la experiencia de navegación.</p>
+        <h3>Almacenamiento esencial</h3>
+        <p>Al aceptar este aviso se guarda una preferencia local en su navegador para no mostrarlo repetidamente. Esta preferencia es necesaria para recordar su decisión y puede eliminarse desde la configuración del navegador.</p>
+        <h3>Analítica y marketing</h3>
+        <p>Actualmente NODE no utiliza cookies de publicidad, retargeting, analítica ni rastreo de terceros en esta landing. Por lo tanto, no se activan servicios como Google Analytics, Hotjar, Meta Ads o Google Ads.</p>
+        <h3>Cambios futuros</h3>
+        <p>Si NODE incorpora tecnologías analíticas, publicitarias o de terceros que requieran consentimiento, actualizará esta política y solicitará una nueva decisión antes de activarlas.</p>
+        <h3>Cómo gestionar cookies</h3>
+        <p>Puede borrar o bloquear cookies y almacenamiento local desde la configuración de su navegador. Esto puede restablecer sus preferencias en este sitio.</p>
+      </div>
+      <div class="privacy-dialog-actions">
+        <button class="privacy-accept" type="button" data-consent-accept>Entendido</button>
+      </div>
+    </section>
+  </div>
+  <!-- ===== FIN: PRIVACIDAD Y COOKIES NODE ===== -->
+  <script src="script.js"></script>
+  <script src="chat.js"></script>
 </body>
 </html>

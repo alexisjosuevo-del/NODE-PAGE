@@ -12,7 +12,9 @@
   const status = widget.querySelector('[data-chat-status]');
   const sessionKey = 'node.chat.session.v1';
   const requestTimeoutMs = 35000;
-
+  const chatEndpoint = new URLSearchParams(window.location.search).get('chatTest') === '1'
+  ? 'https://preference-tooth-gmc-generate.trycloudflare.com/api/chat'
+  : '/api/chat';
   const actions = Object.freeze([
     Object.freeze({ type: 'ASK', id: 'node-capabilities-question', label: '¿Qué puede hacer NODE?', message: '¿Qué puede hacer NODE?' }),
     Object.freeze({ type: 'ASK', id: 'node-process-question', label: '¿Cómo trabajamos?', message: '¿Cómo trabajamos?' }),
@@ -113,7 +115,7 @@
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), requestTimeoutMs);
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(chatEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ channel: 'WEB', request_id: requestId, session_id: sessionId, message }),

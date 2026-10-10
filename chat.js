@@ -12,7 +12,7 @@
   const status = widget.querySelector('[data-chat-status]');
   const sessionKey = 'node.chat.session.v1';
   const requestTimeoutMs = 35000;
-  const chatEndpoint = 'https://preference-tooth-gmc-generate.trycloudflare.com/api/chat';
+  const chatEndpoint = 'https://chess-positioning-sure-perform.trycloudflare.com/api/chat';
   const actions = Object.freeze([
     Object.freeze({ type: 'ASK', id: 'node-capabilities-question', label: '¿Qué puede hacer NODE?', message: '¿Qué puede hacer NODE?' }),
     Object.freeze({ type: 'ASK', id: 'node-process-question', label: '¿Cómo trabajamos?', message: '¿Cómo trabajamos?' }),

@@ -787,6 +787,21 @@ const year=document.querySelector('[data-year]');if(year)year.textContent=new Da
     hero.addEventListener('mouseleave', () => { mx = -1000; my = -1000; });
   })();
 
+  })();
+
+  /* Respaldo móvil: muestra la imagen si IntersectionObserver no se activa. */
+  const revealFoundersFallback = () => {
+    document.querySelectorAll('.founders-visual.reveal:not(.visible)').forEach(figure => {
+      figure.classList.add('visible');
+    });
+  };
+
+  if (document.readyState === 'complete') {
+    requestAnimationFrame(revealFoundersFallback);
+  } else {
+    window.addEventListener('load', revealFoundersFallback, { once: true });
+  }
+
 })();
 // ===== FIN: ANIMACIONES TECNOLOGICAS NODE =====
 // ===== FIN: INTERACCIONES EDITORIALES NODE =====

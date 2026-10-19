@@ -2407,5 +2407,35 @@ body.privacy-open {
     transform: none !important;
   }
 }
+/* Solo celular: imagen del equipo siempre visible.
+   En PC se conserva la animación original. */
+@media screen and (max-width: 900px) {
+  .difference .founders-visual,
+  .difference .founders-visual.reveal {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    min-height: 260px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  .difference .founders-visual .founders-base {
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 2 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    object-fit: cover !important;
+  }
+
+  .difference .founders-visual .founders-hover {
+    display: none !important;
+  }
+}
 
 /* ===== FIN: CANVAS EXTENDIDOS Y MEJORAS VISUALES ===== */

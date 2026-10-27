@@ -22,6 +22,53 @@
   const sectionLabels = Object.freeze({ enfoque: 'Ver enfoque', proceso: 'Ver proceso', capacidades: 'Ver capacidades', equipo: 'Ver equipo', diagnostico: 'Solicitar diagnóstico' });
   let inFlight = false;
   let sessionId = readSessionId();
+  let gestureTimer = 0;
+  let blinkTimer = 0;
+  let joyTimer = 0;
+  let errorTimer = 0;
+  let greetingTimer = 0;
+  const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
+
+  function setNodeState(state) {
+    widget.dataset.nodeState = state;
+  }
+
+  function setGesture(gesture, duration = 0) {
+    window.clearTimeout(gestureTimer);
+    widget.dataset.nodeGesture = gesture;
+    if (duration) {
+      gestureTimer = window.setTimeout(() => {
+        if (widget.dataset.nodeGesture === gesture) delete widget.dataset.nodeGesture;
+      }, duration);
+    }
+  }
+
+  function expressJoy() {
+    window.clearTimeout(joyTimer);
+    setGesture('joy');
+    joyTimer = window.setTimeout(() => {
+      if (widget.dataset.nodeGesture === 'joy') delete widget.dataset.nodeGesture;
+    }, 760);
+  }
+
+  function scheduleBlink() {
+    window.clearTimeout(blinkTimer);
+    if (document.hidden || reducedMotion?.matches) return;
+    const delay = 3000 + Math.round(Math.random() * 4000);
+    blinkTimer = window.setTimeout(() => {
+      if (!document.hidden && !reducedMotion?.matches && !widget.dataset.nodeGesture) setGesture('blink', 150);
+      scheduleBlink();
+    }, delay);
+  }
+
+  function startGreetingOnce() {
+    if (reducedMotion?.matches) return;
+    try {
+      if (sessionStorage.getItem('node.chat.node-greeted.v1')) return;
+      sessionStorage.setItem('node.chat.node-greeted.v1', '1');
+    } catch (_) { /* Greeting is decorative if storage is unavailable. */ }
+    greetingTimer = window.setTimeout(() => setGesture('salute', 580), 360);
+  }
 
   function readSessionId() {
     try {
@@ -58,6 +105,7 @@
     suggestions.querySelectorAll('button').forEach((button) => { button.disabled = value; });
     status.hidden = !value;
     status.textContent = value ? 'NODE está pensando…' : '';
+    setNodeState(value ? 'thinking' : (panel.hidden ? 'idle' : (input.value.trim() ? 'writing' : 'open')));
   }
 
   function navigateToSection(target) {
@@ -106,6 +154,7 @@
 
   async function ask(message) {
     if (inFlight || !message.trim()) return;
+    let failed = false;
     const requestId = makeId('request');
     addMessage(message, 'user');
     input.value = '';
@@ -121,11 +170,21 @@
       });
       if (!response.ok) throw new Error('HTTP_ERROR');
       renderResponse(await response.json());
+      expressJoy();
     } catch (_) {
+      failed = true;
       addMessage('No pude conectar con NODE en este momento. Intenta nuevamente.', 'bot');
+      setGesture('curious', 900);
     } finally {
       window.clearTimeout(timer);
       setBusy(false);
+      if (failed) {
+        window.clearTimeout(errorTimer);
+        setNodeState('error');
+        errorTimer = window.setTimeout(() => {
+          if (widget.dataset.nodeState === 'error') setNodeState(panel.hidden ? 'idle' : 'open');
+        }, 1050);
+      }
       if (!panel.hidden) input.focus();
     }
   }
@@ -139,10 +198,64 @@
     suggestions.appendChild(button);
   });
 
-  const openPanel = () => { panel.hidden = false; toggle.setAttribute('aria-expanded', 'true'); window.setTimeout(() => input.focus(), 50); };
-  const closePanel = () => { panel.hidden = true; toggle.setAttribute('aria-expanded', 'false'); toggle.focus(); };
+  const openPanel = () => {
+    panel.hidden = false;
+    toggle.setAttribute('aria-expanded', 'true');
+    setNodeState(input.value.trim() ? 'writing' : 'open');
+    expressJoy();
+    window.setTimeout(() => input.focus(), 50);
+  };
+  const closePanel = () => {
+    panel.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+    setNodeState(inFlight ? 'thinking' : 'idle');
+    setGesture('blink', 160);
+    toggle.focus();
+  };
   toggle.addEventListener('click', () => panel.hidden ? openPanel() : closePanel());
   closeButton.addEventListener('click', closePanel);
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !panel.hidden) closePanel(); });
   form.addEventListener('submit', (event) => { event.preventDefault(); ask(input.value.trim()); });
+  input.addEventListener('input', () => {
+    if (!inFlight && !panel.hidden) setNodeState(input.value.trim() ? 'writing' : 'open');
+  });
+
+  toggle.addEventListener('pointermove', (event) => {
+    if (event.pointerType === 'touch' || reducedMotion?.matches) return;
+    const rect = toggle.getBoundingClientRect();
+    const x = Math.max(-3, Math.min(3, ((event.clientX - rect.left) / rect.width - .5) * 7));
+    const y = Math.max(-2, Math.min(2, ((event.clientY - rect.top) / rect.height - .5) * 5));
+    toggle.style.setProperty('--node-x', `${x}px`);
+    toggle.style.setProperty('--node-y', `${y}px`);
+  });
+  toggle.addEventListener('pointerleave', () => {
+    toggle.style.setProperty('--node-x', '0px');
+    toggle.style.setProperty('--node-y', '0px');
+    if (!inFlight && !panel.hidden) setGesture('curious', 380);
+  });
+  toggle.addEventListener('pointerenter', (event) => {
+    if (event.pointerType !== 'touch' && !reducedMotion?.matches) setGesture('curious', 900);
+  });
+
+  const onVisibilityChange = () => {
+    if (document.hidden) {
+      window.clearTimeout(blinkTimer);
+      window.clearTimeout(gestureTimer);
+      delete widget.dataset.nodeGesture;
+    } else {
+      scheduleBlink();
+    }
+  };
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  globalThis.addEventListener('pagehide', () => {
+    window.clearTimeout(blinkTimer);
+    window.clearTimeout(gestureTimer);
+    window.clearTimeout(joyTimer);
+    window.clearTimeout(errorTimer);
+    window.clearTimeout(greetingTimer);
+  }, { once: true });
+  reducedMotion?.addEventListener?.('change', onVisibilityChange);
+  setNodeState('idle');
+  startGreetingOnce();
+  scheduleBlink();
 })();

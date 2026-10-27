@@ -11,6 +11,8 @@
   const suggestions = widget.querySelector('[data-chat-suggestions]');
   const status = widget.querySelector('[data-chat-status]');
   const pinButton = widget.querySelector('[data-chat-pin]');
+  const followButton = widget.querySelector('[data-chat-follow]');
+  const motionButton = widget.querySelector('[data-chat-motion]');
   const sessionKey = 'node.chat.session.v1';
   const requestTimeoutMs = 35000;
   const chatEndpoint = 'https://chess-positioning-sure-perform.trycloudflare.com/api/chat';
@@ -28,6 +30,7 @@
   let joyTimer = 0;
   let errorTimer = 0;
   let greetingTimer = 0;
+  let inviteTimer = 0;
   const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
   const compactViewport = globalThis.matchMedia?.('(max-width: 680px)');
 
@@ -70,6 +73,14 @@
       sessionStorage.setItem('node.chat.node-greeted.v1', '1');
     } catch (_) { /* Greeting is decorative if storage is unavailable. */ }
     greetingTimer = window.setTimeout(() => setGesture('salute', 580), 360);
+  }
+
+  function greetFirstEncounter() {
+    try {
+      if (sessionStorage.getItem('node.chat.first-encounter.v1')) return;
+      sessionStorage.setItem('node.chat.first-encounter.v1', '1');
+    } catch (_) { /* Decorative reaction only. */ }
+    setGesture('salute', 640);
   }
 
   function readSessionId() {
@@ -246,7 +257,7 @@
   const flight = (() => {
     const haloRadius = 52;
     const proximityRadius = 128;
-    const state = { x: 0, y: 0, baseX: 0, baseY: 0, size: 68, zones: [], dirty: true, plan: null, pausedUntil: 0, pinned: false, pointer: null, raf: 0, scrollTimer: 0 };
+    const state = { x: 0, y: 0, baseX: 0, baseY: 0, size: 68, zones: [], dirty: true, plan: null, pausedUntil: 0, pinned: false, motionPaused: false, follow: false, pointer: null, raf: 0, scrollTimer: 0 };
 
     function mobileOrReduced() { return Boolean(reducedMotion?.matches || compactViewport?.matches); }
     function setFlightState(value) { widget.dataset.nodeFlight = value; }
@@ -287,9 +298,14 @@
     function segmentIsFree(from, to, obstacles) {
       const distance = Math.hypot(to.x - from.x, to.y - from.y);
       const samples = Math.max(2, Math.ceil(distance / 14));
+      // El botón original puede estar visualmente dentro del margen de seguridad de un
+      // elemento (por ejemplo el footer). Permitimos salir de ese único rectángulo,
+      // pero la ruta sigue rechazando todo el resto del contenido.
+      const sourceObstacles = obstacles.filter((rect) => from.x > rect.left && from.x < rect.right && from.y > rect.top && from.y < rect.bottom);
+      const routeObstacles = obstacles.filter((rect) => !sourceObstacles.includes(rect));
       for (let index = 0; index <= samples; index += 1) {
         const t = index / samples;
-        if (!pointIsFree(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, obstacles)) return false;
+        if (!pointIsFree(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, routeObstacles)) return false;
       }
       return true;
     }
@@ -297,15 +313,16 @@
       resetBase();
       const obstacles = visibleObstacleRects();
       const candidates = [];
-      for (let y = haloRadius + 14; y < innerHeight - haloRadius; y += 56) {
-        for (let x = haloRadius + 14; x < innerWidth - haloRadius; x += 56) {
+      for (let y = haloRadius + 12; y < innerHeight - haloRadius; y += 44) {
+        for (let x = haloRadius + 12; x < innerWidth - haloRadius; x += 44) {
           if (pointIsFree(x, y, obstacles)) candidates.push({ x, y });
         }
       }
       state.zones = { obstacles, candidates };
+      widget.dataset.nodeZones = String(candidates.length);
       state.dirty = false;
     }
-    function canExplore() { return panel.hidden && !state.pinned && !mobileOrReduced() && !document.hidden; }
+    function canExplore() { return panel.hidden && !state.pinned && !state.motionPaused && !mobileOrReduced() && !document.hidden; }
     function chooseDestination() {
       if (state.dirty) refreshZones();
       const from = visualCenter();
@@ -320,9 +337,9 @@
       const inverse = 1 - t;
       return inverse ** 3 * a + 3 * inverse ** 2 * t * b + 3 * inverse * t ** 2 * c + t ** 3 * d;
     }
-    function start() {
+    function start(destinationOverride = null) {
       if (!canExplore() || state.plan || performance.now() < state.pausedUntil) return;
-      const destination = chooseDestination();
+      const destination = destinationOverride || chooseDestination();
       if (!destination) { setFlightState('rest'); state.pausedUntil = performance.now() + 3000; return; }
       const from = visualCenter();
       const dx = destination.x - from.x;
@@ -346,6 +363,10 @@
       state.y = 0;
       setTransform(0);
       setFlightState('conversation');
+    }
+    function hold(reason = 'near', duration = 2200) {
+      stop(reason);
+      state.pausedUntil = performance.now() + duration;
     }
     function resumeAfterPause(delay = 2200) {
       if (!canExplore()) return;
@@ -381,7 +402,13 @@
           setTransform(Math.max(-8, Math.min(8, Math.atan2(ay - y, ax - x) * 180 / Math.PI * .22)));
           if (t >= 1) { state.plan = null; setTransform(0); setFlightState('rest'); state.pausedUntil = now + 1500 + Math.random() * 1800; }
         }
-      } else if (canExplore() && now >= state.pausedUntil) start();
+      } else if (canExplore() && now >= state.pausedUntil) {
+        if (state.follow && state.pointer) {
+          const target = findFollowDestination();
+          if (target) start(target);
+          else { setFlightState('rest'); state.pausedUntil = now + 700; }
+        } else start();
+      }
       state.raf = requestAnimationFrame(tick);
     }
     function pointerMove(event) {
@@ -392,7 +419,10 @@
       }
       state.pointer = { x: event.clientX, y: event.clientY };
       const center = visualCenter();
-      if (Math.hypot(event.clientX - center.x, event.clientY - center.y) < proximityRadius && canExplore()) stop('near');
+      if (Math.hypot(event.clientX - center.x, event.clientY - center.y) < proximityRadius && canExplore()) {
+        greetFirstEncounter();
+        if (!state.follow) stop('near');
+      }
     }
     function pointerExit() { state.pointer = null; toggle.style.setProperty('--node-x', '0px'); toggle.style.setProperty('--node-y', '0px'); }
     function layoutChanged() { state.dirty = true; if (state.plan) stop('rest'); resumeAfterPause(600); }
@@ -403,6 +433,43 @@
       pinButton.textContent = value ? 'Liberar asistente' : 'Fijar asistente';
       savePinned();
       if (value) stop('pinned'); else resumeAfterPause(1300);
+    }
+    function setMotionPaused(value) {
+      state.motionPaused = value;
+      motionButton.setAttribute('aria-pressed', String(value));
+      motionButton.textContent = value ? 'Reanudar movimiento' : 'Pausar movimiento';
+      if (value) stop('paused'); else resumeAfterPause(500);
+    }
+    function setFollow(value) {
+      state.follow = value;
+      followButton.setAttribute('aria-pressed', String(value));
+      followButton.textContent = value ? 'Dejar de seguir' : 'Sígueme';
+      if (value) { state.motionPaused = false; setMotionPaused(false); resumeAfterPause(120); }
+      else if (state.plan) stop('rest');
+    }
+    function findFollowDestination() {
+      if (state.dirty) refreshZones();
+      const from = visualCenter();
+      const dx = state.pointer.x - from.x;
+      const dy = state.pointer.y - from.y;
+      const length = Math.max(1, Math.hypot(dx, dy));
+      const desired = { x: state.pointer.x - dx / length * 116, y: state.pointer.y - dy / length * 116 };
+      const candidates = state.zones.candidates.filter((candidate) => segmentIsFree(from, candidate, state.zones.obstacles));
+      if (!candidates.length) return null;
+      const nearest = candidates.reduce((best, candidate) => {
+        const score = Math.hypot(candidate.x - desired.x, candidate.y - desired.y);
+        return !best || score < best.score ? { candidate, score } : best;
+      }, null);
+      return nearest && nearest.score < 180 ? nearest.candidate : null;
+    }
+    function requestInvite() {
+      window.clearTimeout(inviteTimer);
+      if (!canExplore() || state.follow || state.pointer) return;
+      inviteTimer = window.setTimeout(() => {
+        if (!canExplore() || state.follow || state.pointer) return;
+        widget.dataset.nodeInvite = 'true';
+        window.setTimeout(() => { delete widget.dataset.nodeInvite; }, 2600);
+      }, 26000 + Math.random() * 18000);
     }
     function init() {
       resetBase();
@@ -415,15 +482,33 @@
       toggle.addEventListener('focus', () => stop('near'));
       toggle.addEventListener('blur', () => resumeAfterPause(2100));
       pinButton.addEventListener('click', () => setPinned(!state.pinned));
+      followButton.addEventListener('click', () => setFollow(!state.follow));
+      motionButton.addEventListener('click', () => setMotionPaused(!state.motionPaused));
       globalThis.addEventListener('resize', layoutChanged, { passive: true });
       globalThis.addEventListener('scroll', scrollChanged, { passive: true });
       compactViewport?.addEventListener?.('change', layoutChanged);
       requestAnimationFrame(tick);
       resumeAfterPause(2300);
+      requestInvite();
     }
-    function destroy() { cancelAnimationFrame(state.raf); window.clearTimeout(state.scrollTimer); }
-    return { init, stop, settleForPanel, resumeAfterPause, destroy, layoutChanged };
+    function destroy() { cancelAnimationFrame(state.raf); window.clearTimeout(state.scrollTimer); window.clearTimeout(inviteTimer); }
+    return { init, stop, hold, settleForPanel, resumeAfterPause, destroy, layoutChanged, requestInvite };
   })();
+
+  // Un campo o una selección activa tiene prioridad sobre la exploración cercana.
+  document.addEventListener('focusin', (event) => {
+    if (event.target instanceof Element && !widget.contains(event.target) && event.target.matches('input,textarea,select,[contenteditable="true"]')) flight.hold('near', 5000);
+  });
+  document.addEventListener('input', (event) => {
+    if (event.target instanceof Element && !widget.contains(event.target) && event.target.matches('input,textarea,select,[contenteditable="true"]')) flight.hold('near', 2800);
+  });
+  document.addEventListener('selectionchange', () => {
+    if (String(globalThis.getSelection?.() || '').trim()) flight.hold('near', 2200);
+  });
+  // Punto de integración: los formularios o flujos reales emiten este evento sólo tras confirmar éxito.
+  document.addEventListener('node:action-complete', (event) => {
+    if (event.detail?.success === true) { expressJoy(); flight.hold('rest', 900); }
+  });
 
   const onVisibilityChange = () => {
     if (document.hidden) {

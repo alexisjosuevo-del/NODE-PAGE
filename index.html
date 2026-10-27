@@ -231,7 +231,7 @@
 
   <!-- ===== INICIO: WIDGET DE CHAT NODE (2026-08-22) ===== -->
   <div class="chat-widget" data-chat-widget>
-    <section class="chat-panel" data-chat-panel role="dialog" aria-modal="false" aria-labelledby="chat-panel-title" hidden>
+    <section class="chat-panel" id="chat-panel" data-chat-panel role="dialog" aria-modal="false" aria-labelledby="chat-panel-title" hidden>
       <header class="chat-panel-head">
         <div>
           <p class="section-index">NODE / ASISTENTE</p>
@@ -252,14 +252,19 @@
         <button type="submit" aria-label="Enviar">↑</button>
       </form>
     </section>
-    <button class="chat-launcher" type="button" data-chat-toggle aria-haspopup="dialog" aria-expanded="false" aria-controls="chat-panel-title">
-      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <circle cx="20" cy="20" r="19" stroke="currentColor" stroke-width="1.2" opacity=".5"/>
-        <path d="M12 16.5c0-2.5 2.2-4.5 5-4.5h6c2.8 0 5 2 5 4.5v4c0 2.5-2.2 4.5-5 4.5h-7l-4 3.2v-3.6c-1.2-.8-2-2.2-2-3.6v-4.4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-        <circle cx="16.5" cy="18.4" r="1" fill="currentColor"/>
-        <circle cx="20" cy="18.4" r="1" fill="currentColor"/>
-        <circle cx="23.5" cy="18.4" r="1" fill="currentColor"/>
-      </svg>
+    <button class="chat-launcher" type="button" data-chat-toggle aria-haspopup="dialog" aria-expanded="false" aria-controls="chat-panel" aria-describedby="chat-launcher-hint">
+      <span class="node-orbit node-orbit--one" aria-hidden="true"></span>
+      <span class="node-orbit node-orbit--two" aria-hidden="true"></span>
+      <span class="node-shell" aria-hidden="true">
+        <span class="node-core">
+          <span class="node-glint"></span>
+          <span class="node-eyes">
+            <span class="node-eye node-eye--left"></span>
+            <span class="node-eye node-eye--right"></span>
+          </span>
+        </span>
+      </span>
+      <span class="node-tooltip" id="chat-launcher-hint" role="tooltip">¿Te ayudo?</span>
       <span class="sr-only">Abrir asistente NODE</span>
     </button>
   </div>

@@ -2008,7 +2008,7 @@ body.privacy-open {
 .node-orbit--one { transform: rotate(-24deg); }
 .node-orbit--two { width: 92%; height: 108%; border-color: color-mix(in srgb, #57b9e8 62%, transparent); opacity: .38; animation-direction: reverse; animation-duration: 9s; }
 .node-tooltip { position: absolute; right: calc(100% + 10px); z-index: 4; width: max-content; padding: 7px 10px; border-radius: 999px; color: var(--white); background: var(--ink); font: 12px/1.1 var(--sans); opacity: 0; pointer-events: none; transform: translateX(4px); transition: opacity .2s ease, transform .2s ease; }
-.chat-launcher:hover .node-tooltip,.chat-launcher:focus-visible .node-tooltip { opacity: 1; transform: translateX(0); }
+.chat-launcher:hover .node-tooltip,.chat-launcher:focus-visible .node-tooltip,.chat-widget[data-node-invite="true"] .node-tooltip { opacity: 1; transform: translateX(0); }
 
 .chat-widget[data-node-state="open"] .node-shell { animation: node-compress .38s cubic-bezier(.2,.8,.2,1) both; }
 .chat-widget[data-node-state="writing"] .node-eye { height: 68%; transform: translateY(2%); }
@@ -2063,6 +2063,10 @@ body.privacy-open {
 .chat-pin { border: 1px solid var(--line); border-radius: 999px; padding: 6px 8px; color: var(--muted); background: var(--white); font: 10px/1 var(--sans); cursor: pointer; white-space: nowrap; }
 .chat-pin[aria-pressed="true"] { color: var(--white); border-color: var(--ink); background: var(--ink); }
 .chat-pin:hover,.chat-pin:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chat-motion-controls { display: flex; gap: 7px; padding: 9px 18px; border-bottom: 1px solid var(--line); background: var(--paper); }
+.chat-motion-control { border: 1px solid var(--line); border-radius: 999px; padding: 6px 9px; color: var(--ink); background: var(--white); font: 11px/1 var(--sans); cursor: pointer; }
+.chat-motion-control[aria-pressed="true"] { color: var(--white); border-color: var(--ink); background: var(--ink); }
+.chat-motion-control:hover,.chat-motion-control:focus-visible { border-color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 38%, transparent); outline-offset: 1px; }
 
 .chat-panel-head h2 {
     margin: 4px 0 0;

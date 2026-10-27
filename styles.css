@@ -1882,8 +1882,12 @@ body.privacy-open {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 14px
+    gap: 14px;
+    will-change: transform
 }
+
+.chat-widget[data-node-flight="exploring"] .node-shell { animation: node-breathe 2.8s ease-in-out infinite, node-fly-halo .65s ease-in-out infinite alternate; }
+.chat-widget[data-node-flight="near"],.chat-widget[data-node-flight="conversation"],.chat-widget[data-node-flight="pinned"] { will-change: auto; }
 
 /* Nodo vivo del asistente: las capas evitan que flotación, mirada y gesto compitan por transform. */
 .chat-launcher {
@@ -2024,6 +2028,7 @@ body.privacy-open {
 @keyframes node-breathe { 0%,100% { transform: scale(1); border-radius: 49% 51% 48% 52% / 51% 48% 52% 49%; } 50% { transform: scale(1.018); border-radius: 53% 47% 52% 48% / 47% 52% 48% 53%; } }
 @keyframes node-orbit { to { rotate: 360deg; } }
 @keyframes node-compress { 45% { transform: scale(.91,.86); } 100% { transform: scale(1); } }
+@keyframes node-fly-halo { from { border-radius: 46% 54% 50% 50%; } to { border-radius: 55% 45% 47% 53%; } }
 
 .chat-panel {
     width: min(340px,calc(100vw - 48px));
@@ -2053,6 +2058,11 @@ body.privacy-open {
     padding: 18px 18px 14px;
     border-bottom: 1px solid var(--line)
 }
+
+.chat-panel-actions { display: flex; align-items: center; gap: 8px; }
+.chat-pin { border: 1px solid var(--line); border-radius: 999px; padding: 6px 8px; color: var(--muted); background: var(--white); font: 10px/1 var(--sans); cursor: pointer; white-space: nowrap; }
+.chat-pin[aria-pressed="true"] { color: var(--white); border-color: var(--ink); background: var(--ink); }
+.chat-pin:hover,.chat-pin:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .chat-panel-head h2 {
     margin: 4px 0 0;
@@ -2205,7 +2215,7 @@ body.privacy-open {
 
 @media (prefers-reduced-motion: reduce) {
     .node-shell,.node-orbit,.chat-panel { animation: none !important; }
-    .chat-launcher,.node-eyes,.node-eye,.node-tooltip { transition: none !important; }
+    .chat-widget,.chat-launcher,.node-eyes,.node-eye,.node-tooltip { transition: none !important; }
 }
 
 

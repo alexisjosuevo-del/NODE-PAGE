@@ -16,6 +16,7 @@
   const ease = n => { n=clamp(n); return n*n*n*(n*(n*6-15)+10); };
   const mix = (a,b,t) => a+(b-a)*t;
   let width,height,dpr,frame,start,closed=false,revealing=false,failsafe;
+  let introKeyboardUsed = false;
   // Cached spherical normals, broad studio reflections and a pearl coating.
   // The animation only composites these surfaces; no per-frame pixel shading.
   function material(size, tone, pearl=false) {
@@ -64,10 +65,12 @@
     setTimeout(()=>{
       intro.hidden=true;document.body.classList.remove('intro-active','intro-revealing');
       siblings.forEach((el,i)=>{el.inert=inertStates[i]});
-      if(returnFocus)document.querySelector('[data-header] .brand')?.focus({preventScroll:true});
+      if(returnFocus && introKeyboardUsed)document.querySelector('[data-header] .brand')?.focus({preventScroll:true});
+      else if(returnFocus)document.activeElement?.blur();
     },0);
   }
   function onKey(e) {
+    if(['Tab','Escape','Enter',' '].includes(e.key))introKeyboardUsed=true;
     if(e.key==='Escape'){e.preventDefault();finish()}
     if(e.key==='Tab'){e.preventDefault();skip?.focus({preventScroll:true})}
   }
